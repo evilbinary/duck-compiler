@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv=Content-Type content="text/html;charset=utf-8">
+<title>./rand.ss</title>
+<style type="text/css">
+* { border: 0; margin: 0; outline: 0; padding: 0; vertical-align: baseline; }
+code, kbd, pre, samp { font-family: monospace, monospace; font-size: 1rem; }
+html { -moz-osx-font-smoothing: grayscale; -webkit-font-smoothing: antialiased; }
+table { border-collapse: collapse; border-spacing: 0; }
+body { padding: 1rem; }
+h1, h2, h3, h4 { line-height: 1.25; margin-bottom: 0.5rem; }
+h1 { font-size: 1.296rem; }
+h2 { font-size: 1.215rem; }
+h3 { font-size: 1.138rem; }
+h4 { font-size: 1.067rem; }
+html { font-family: monospace, monospace; font-size: 1rem; }
+p { margin-bottom: 1.25rem; }
+.pc0 { background-color: #111111; color: white; white-space: nowrap; }
+.pc1 { background-color: #607D8B; color: white; white-space: nowrap; }
+.pc2 { background-color: #9C27B0; color: black; white-space: nowrap; }
+.pc3 { background-color: #673AB7; color: white; white-space: nowrap; }
+.pc4 { background-color: #3F51B5; color: white; white-space: nowrap; }
+.pc5 { background-color: #2196F3; color: black; white-space: nowrap; }
+.pc6 { background-color: #00BCD4; color: black; white-space: nowrap; }
+.pc7 { background-color: #4CAF50; color: black; white-space: nowrap; }
+.pc8 { background-color: #CDDC39; color: black; white-space: nowrap; }
+.pc9 { background-color: #FFEB3B; color: black; white-space: nowrap; }
+.pc10 { background-color: #FFC107; color: black; white-space: nowrap; }
+.pc11 { background-color: #FF9800; color: black; white-space: nowrap; }
+.pc12 { background-color: #F44336; color: white; white-space: nowrap; }
+</style>
+</head>
+<body class=pc0>
+<h1 style="margin-bottom: 1rem">./rand.ss<span style="opacity: 0.5"> on Thu Mar  5 19:14:40 2020</span></h1>
+<table><tr><td style="color: #666666; font-weight: bold; padding-right: 1rem; text-align: right"><pre>
+<span id=line1>1
+</span><span id=line2>2
+</span><span id=line3>3
+</span><span id=line4>4
+</span><span id=line5>5
+</span><span id=line6>6
+</span><span id=line7>7
+</span><span id=line8>8
+</span><span id=line9>9
+</span><span id=line10>10
+</span><span id=line11>11
+</span><span id=line12>12
+</span><span id=line13>13
+</span><span id=line14>14
+</span><span id=line15>15
+</span><span id=line16>16
+</span><span id=line17>17
+</span><span id=line18>18
+</span><span id=line19>19
+</span><span id=line20>20
+</span><span id=line21>21
+</span><span id=line22>22
+</span><span id=line23>23
+</span><span id=line24>24
+</span><span id=line25>25
+</span><span id=line26>26
+</span><span id=line27>27
+</span><span id=line28>28
+</span><span id=line29>29
+</span><span id=line30>30
+</span><span id=line31>31
+</span><span id=line32>32
+</span><span id=line33>33
+</span><span id=line34>34
+</span><span id=line35>35
+</span><span id=line36>36
+</span><span id=line37>37
+</span><span id=line38>38
+</span><span id=line39>39
+</span><span id=line40>40
+</span><span id=line41>41
+</span><span id=line42>42
+</span><span id=line43>43
+</span><span id=line44>44
+</span><span id=line45>45
+</span><span id=line46>46
+</span><span id=line47>47
+</span><span id=line48>48
+</span><span id=line49>49
+</span><span id=line50>50
+</span><span id=line51>51
+</span><span id=line52>52
+</span></pre></td><td><pre>
+; (define x 123456789)
+; (define y 362436069)
+; (define z 521288629)
+
+; (define (rand x y z )
+;     (define t '())
+;         (let* 
+;             ([x1 (logxor x (logand #xffffffffffffffff (bitwise-arithmetic-shift-left x 16))) ]
+;             [x2 (logxor x1 (bitwise-arithmetic-shift-right x1 5))]
+;             [x3 (logxor x2 (logand #xffffffffffffffff  (bitwise-arithmetic-shift-left x2 1))) ])
+;             (set! t x3)
+;             (set! x y)
+;             (set! y z)
+;             (set! z (logxor t x y))
+;             z))
+
+; (define (rand-init x y z)
+;  (define t '())
+;  (lambda () 
+;     (let* (
+;   (x1 (logxor x (logand #xffffffffffffffff (bitwise-arithmetic-shift-left x 16))))
+;   (x2 (logxor x1 (ash x1 -5)))
+;   (x3 (logxor x2 (logand #xffffffffffffffff (bitwise-arithmetic-shift-left x2 1))))
+
+;     )
+;   (set! t x3)
+;   (set! x y)
+;   (set! y z)
+;   (set! z (logxor t x y))
+;   z))
+; )
+
+; (define rand-maker (rand-init 123456789 362436069 521288629))
+
+<span class=pc11 title="line 35 char 1 count 1">(define gseed </span><span class=pc11 title="line 35 char 15 count 1">0</span><span class=pc11 title="line 35 char 1 count 1">)</span>
+
+<span class=pc11 title="line 37 char 1 count 1">(define (rand-int)</span>
+    <span class=pc11 title="line 37 char 1 count 1">; (set! gseed (+ 2531011 (* gseed 214013 ) ))</span>
+    <span class=pc12 title="line 39 char 5 count 25,000,000">(</span><span class=pc12 title="line 39 char 6 count 25,000,000">logand</span><span class=pc12 title="line 39 char 5 count 25,000,000"> </span><span class=pc12 title="line 39 char 13 count 25,000,000">#xffffffffffffffff</span><span class=pc12 title="line 39 char 5 count 25,000,000"> </span><span class=pc12 title="line 39 char 32 count 25,000,000">(</span><span class=pc12 title="line 39 char 33 count 25,000,000">ash</span><span class=pc12 title="line 39 char 32 count 25,000,000"> </span><span class=pc12 title="line 39 char 37 count 25,000,000">gseed</span><span class=pc12 title="line 39 char 32 count 25,000,000"> </span><span class=pc12 title="line 39 char 43 count 25,000,000">16</span><span class=pc12 title="line 39 char 32 count 25,000,000">)</span><span class=pc12 title="line 39 char 5 count 25,000,000">)</span><span class=pc11 title="line 37 char 1 count 1"></span>
+<span class=pc11 title="line 37 char 1 count 1">)</span>
+
+ 
+
+<span class=pc11 title="line 44 char 1 count 1">(time </span><span class=pc11 title="line 44 char 7 count 1">(let loop ((n </span><span class=pc11 title="line 44 char 21 count 1">25000000</span><span class=pc11 title="line 44 char 7 count 1">))</span>
+    <span class=pc12 title="line 45 char 5 count 25,000,001">(if </span><span class=pc12 title="line 45 char 9 count 25,000,001">(</span><span class=pc12 title="line 45 char 10 count 25,000,001">&gt;</span><span class=pc12 title="line 45 char 9 count 25,000,001"> </span><span class=pc12 title="line 45 char 12 count 25,000,001">n</span><span class=pc12 title="line 45 char 9 count 25,000,001"> </span><span class=pc12 title="line 45 char 14 count 25,000,001">0</span><span class=pc12 title="line 45 char 9 count 25,000,001">)</span><span class=pc12 title="line 45 char 5 count 25,000,001"></span>
+        <span class=pc12 title="line 46 char 9 count 25,000,000">(let ((r </span><span class=pc12 title="line 46 char 18 count 25,000,000">(</span><span class=pc12 title="line 46 char 19 count 25,000,000">rand-int</span><span class=pc12 title="line 46 char 18 count 25,000,000">)</span><span class=pc12 title="line 46 char 9 count 25,000,000">)) </span>
+        <span class=pc12 title="line 46 char 9 count 25,000,000">; (printf "rand ~a\n"  r  )</span>
+        <span class=pc12 title="line 48 char 9 count 25,000,000">(</span><span class=pc12 title="line 48 char 10 count 25,000,000">loop</span><span class=pc12 title="line 48 char 9 count 25,000,000"> </span><span class=pc12 title="line 48 char 15 count 25,000,000">(</span><span class=pc12 title="line 48 char 16 count 25,000,000">-</span><span class=pc12 title="line 48 char 15 count 25,000,000"> </span><span class=pc12 title="line 48 char 18 count 25,000,000">n</span><span class=pc12 title="line 48 char 15 count 25,000,000"> </span><span class=pc12 title="line 48 char 20 count 25,000,000">1</span><span class=pc12 title="line 48 char 15 count 25,000,000">)</span><span class=pc12 title="line 48 char 9 count 25,000,000">)</span><span class=pc12 title="line 46 char 9 count 25,000,000"></span>
+        <span class=pc12 title="line 46 char 9 count 25,000,000">)</span><span class=pc12 title="line 45 char 5 count 25,000,001"></span>
+    <span class=pc12 title="line 45 char 5 count 25,000,001">)</span><span class=pc11 title="line 44 char 7 count 1"></span>
+<span class=pc11 title="line 44 char 7 count 1">)</span><span class=pc11 title="line 44 char 1 count 1">)</span>
+ </pre></td></tr></table>
+</body>
+</html>

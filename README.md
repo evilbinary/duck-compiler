@@ -3,7 +3,7 @@
 
 ## 使用
 
-运行: `./运 嘎嘎.鸭`
+运行: `make build`
 
 ## 鸭语言
 
@@ -42,3 +42,13 @@
 《C》
 输出：1234。
 ```
+
+
+## 计划
+
+1. add duck compiler
+2. add lib support vector and so on
+3. add duck language support
+4. add x86-64 arm arm64 wasm
+5. add duck os
+6. add duck robot

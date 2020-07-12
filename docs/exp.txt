@@ -1,0 +1,89 @@
+[1,2,3] (list 1 2 3)
+f(10,20) (f 10 20)
+
+(equal? (list  'a 'b ) '(a b)) => #t
+'a => (quote a)
+(list (quote a) (quote b)) => '(a b)
+
+> (cons 1 2)
+(1 . 2)
+> (cons 3 (cons 1 2))
+(3 1 . 2)
+(cons 3 (cons 1 '()) ) )
+(3 1)
+
+> '(b . (c . (d . nil)))
+(b c d . nil)
+(cons b  (cons c  (cons d nil)))
+
+(cons 1 '())
+(1)
+
+
+> (define x '(1 . 2))
+#<unspecified>
+> (set-cdr! x (cons 2 '()))
+#<unspecified>
+> x
+(1 2)
+
+> (equal? '(a) '(a) )
+#t
+> (eqv? '(a) '(a) )
+#f
+
+
+void f() {
+	return x*x;
+}
+
+if(a>b){
+	
+}
+
+(if (> a b)
+	(begin xxx))
+
+
+#include <stdio.h>
+
+int main(int argc, char** argv) {
+  puts("Hello, world!");
+  return 0;
+}	
+
+变量
+函数
+
+scm
+c
+asm
+
+《鸭语言》
+
+菩萨蛮
+问君何事轻离别，一年能几团圆月。
+杨柳乍如丝，故园春尽时。
+春归归不得，两桨松花隔。
+旧事逐寒潮，啼鹃恨未消。
+
+函数对应的语文.
+
+
+
+《树木》
+移动树木，到三百米。
+当到三百米，锯成两段。
+裁剪树枝，摘掉树叶。
+
+move(tree),to(300)。
+if=300,cut(2)。
+cut(branch),takeoff(leaf)。
+
+
+
+
+
+
+
+
