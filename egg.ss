@@ -16,7 +16,8 @@
     remove-local
   )
 
-(import (scheme)
+(import
+    (rename (scheme) (div div2) )
     (match)
     (trace)
     (common)
@@ -171,6 +172,35 @@
       [(set ,var ,val)
         `(set ,var ,(instruct-conversion val))
       ]
+      [(set! ,var ,val)
+        `(set ,var ,(instruct-conversion val))
+      ]
+      [(if ,a ,b ,c)
+        (let ((l1 (gen-sym 'ifa))
+              (l2 (gen-sym 'ifb))
+              (l3 (gen-sym 'ifend)))
+        `(instruct
+            (set reg0 ,(instruct-conversion a))
+            (cmp-jmp reg0 false-rep ,l2 ,l1)
+            (label ,l1)
+            (set reg0 ,(instruct-conversion b))
+            (jmp ,l3)
+            (label ,l2)
+            (set reg0 ,(instruct-conversion c))
+            (label ,l3)
+          )
+        )
+      ]
+      [(,binop ,a ,b)
+        (guard (memq binop '(> < >= < <= =) ))
+        `(,binop ,a ,b)
+      ]
+      [(* ,a ,b)
+        `(mul ,a ,b)
+      ]
+      [(/ ,a ,b)
+      `(div ,a ,b)
+      ]
       [(+ ,a ,b)
       `(add ,a ,b)
       ]
@@ -244,8 +274,15 @@
                 ,@(map (lambda (i) (assign i env)) e*)
               )))
       ]
-      [(add ,a ,b)
-        `(add ,(if (number? a) a `(local ,(lookup a env)))
+      [(,binop ,a ,b)
+        (guard (memq binop '(add sub mul div) ))
+        `(,binop ,(if (number? a) a `(local ,(lookup a env)))
+              ,(if (number? b) b `(local ,(lookup b env)))
+          )
+      ]
+      [(,binop ,a ,b)
+        (guard (memq binop '(> < >= < <= =) ))
+        `(,binop ,(if (number? a) a `(local ,(lookup a env)))
               ,(if (number? b) b `(local ,(lookup b env)))
           )
       ]
@@ -321,7 +358,7 @@
           ))
         (libs (lib-asm-conversion `(instruct
           (instruct ,(print-value))
-          (instruct ,(print-dot))
+          ; (instruct ,(print-dot))
           (instruct ,(print-list))
            )))
        )
@@ -452,10 +489,18 @@
         (emit-prim app (map  (lambda (e)
             (emit-p e env)) args ))        
       ]
-
+      ;;direct call
+      [(call ,app (arg ,args ...))
+        (guard (pair? app))
+        (set reg1 (emit-p app env) )
+        (apply call reg1 
+          (map  (lambda (e)
+            (emit-p e env)) args ))
+      ]
       [(call ,app (arg ,args ...))
         ; (arg (emit-p args env))
         ;(printf "call app= ~a ~a\n" app args)
+        ;;call name
         (apply call app 
           (map  (lambda (e)
             (emit-p e env)) args ))
@@ -466,14 +511,34 @@
       [(ret)
         (ret)
       ]
+      [(cmp-jmp ,a ,b ,c)
+        (cmp-jmp a b c)
+      ]
+      [(,binop ,a ,b)
+        (guard (memq binop '(> < >= < <= =) ))
+        (cmp binop (emit-p a env) (emit-p b env))
+      ]
+      ; [(,binop ,a ,b)
+      ;   (guard (memq binop '(sub mul div) ))
+      ;   (binop (emit-p a env) (emit-p b env))
+      ; ]
       [(add ,a ,b)
-        ;;(add (emit-p a env) (emit-p b env))
+        ;(add (emit-p a env) (emit-p b env))
         (set reg0 (emit-p a env))
-        (sar reg0 type-shift)
+        ; (sar reg0 type-shift)
         (set reg1 (emit-p b env))
-        (sar reg1 type-shift)
+        ; (sar reg1 type-shift)
         (add reg0 reg1)
-        (sal reg0 type-shift)
+        ; (sal reg0 type-shift)
+      ]
+      [(mul ,a ,b)
+        (mul (emit-p a env) (emit-p b env))
+      ]
+      [(sub ,a ,b)
+        (sub (emit-p a env) (emit-p b env))
+      ]
+      [(div ,a ,b)
+        (div (emit-p a env) (emit-p b env))
       ]
       [(sar ,a ,b)
         (sar a b)
@@ -500,8 +565,8 @@
         (mref a b x)
       ]
       ;;primitive start
-      [(emit-print-value (list ,a))
-        (emit-print-value (list a))
+      [(emit-print-value ,args ...)
+        (apply emit-print-value args)
       ]
       [(emit-printf ,fmt  ,args ...)
         (apply emit-printf fmt args)

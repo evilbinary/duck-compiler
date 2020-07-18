@@ -8,26 +8,23 @@
     reg0 reg1 reg2 reg3 reg4 reg5 reg6 reg7 regs regs-map
 
     asm set mref mset note
-    add label sar sal
+    add label sar sal mul sub div
     shl shr ret
-    call jmp cmp-jmp
+    call jmp cmp-jmp cmp
     land xor save restore
     nop local proc
 
     fcall
-    
-    binop->inst
-    cmp->inst
     stext sexit
     asm-compile-exp
     data sdata
     arch-bits
   )
 
-(import (scheme)
-    (match)
-    (trace)
+(import 
+    (rename (scheme) (div div2) )
     (common)
+    (trace)
     (type)
     )
 
@@ -153,15 +150,6 @@
   )
 )
 
-(define binop->inst
-    (lambda (op)
-      (case op
-        [(+) 'add]
-        [(-) 'sub]
-        [(*) 'mul]
-        [(/) 'div]
-        [else (printf "erro binop ~s" op)])))
-
 (define cmp->inst
     (lambda (op)
       (case op
@@ -171,7 +159,25 @@
         [(<=) 'jle]
         [(=) 'je]
         [else (printf "erro binop ~s" op)])))
-
+        
+(define (emit-cmp binop v1 v2)   
+      (let* ((l1 (gen-sym (cmp->inst binop) ))
+            (l2 (symbol-append l1 'end)) )
+          ; (xor reg0 reg0)
+          (set reg0 v1)
+          ; (set reg1 v2)
+          ; (sar reg0 type-shift)
+          ; (sar reg1 type-shift)
+          (asm "cmp ~a,~a" reg0 v2)
+          (asm "~a ~a" (cmp->inst binop) l1)
+          (set reg0 'false-rep)
+          (jmp l2)
+          (label l1)
+          (set reg0 'true-rep)
+          (label l2)
+          (note binop)
+      )
+)
 
 (define (stext)
   (asm "extern _printf")
@@ -276,6 +282,10 @@
       (asm "jne ~a" (symbol->asm-id l2) )) ;; goto not equal
 )
 
+(define (cmp type a b)
+  (emit-cmp type a b)
+)
+
 ;; set symbol? [a], string a ,reg 
 ;; set reg,reg mem,reg reg,mem
 (define set
@@ -317,7 +327,32 @@
 
 
 (define (add a b)
-  (asm "add ~a,~a" reg0 (operands-rep b))
+  (asm "add ~a,~a" (operands-rep a) (operands-rep b))
+  )
+
+(define (sub a b)
+  (if (number? a)
+    (begin 
+      (asm "mov ~a,~a" reg0 (operands-rep a))
+      (asm "sub ~a,~a" reg0 (operands-rep b))
+    )
+    (asm "sub ~a,~a" (operands-rep a) (operands-rep b))
+  )
+  
+  )
+
+(define (mul a b)
+  (asm "xor edx,edx")
+  (asm "mov ~a,~a" reg0 (operands-rep a))
+  (asm "mov ~a,~a" reg2 (operands-rep b))
+  (asm "mul ~a"  reg0)
+  )
+
+(define (div a b)
+  (asm "xor edx,edx")
+  (asm "mov ~a,~a" reg0 (operands-rep a))
+  (asm "mov ~a,~a" reg2 (operands-rep b))
+  (asm "div ~a"  reg0)
   )
 
 (define (proc l)

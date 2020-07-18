@@ -21,7 +21,9 @@
     binop?
   )
 
-(import (scheme)
+(import 
+    ;;(scheme)
+    (rename (scheme) (div div2) )
     (match)
     (trace)
     (common)
@@ -38,24 +40,6 @@
 )
 
 ;;asm inst
-(define (emit-cmp binop v1 v2)   
-      (let* ((l1 (gen-sym (cmp->inst binop) ))
-            (l2 (symbol-append l1 'end)) )
-          ; (xor reg0 reg0)
-          (set reg0 v1)
-          ; (set reg1 v2)
-          ; (sar reg0 type-shift)
-          ; (sar reg1 type-shift)
-          (asm "cmp ~a,~a" reg0 v2)
-          (asm "~a ~a" (cmp->inst binop) l1)
-          (set reg0 'false-rep)
-          (jmp l2)
-          (label l1)
-          (set reg0 'true-rep)
-          (label l2)
-          (note binop)
-      )
-)
 (define (emit-print-type-value tag  str lend)
   (let ((l1 (gen-sym 'ltype))
         (l2 (gen-sym 'ltype)))
@@ -131,11 +115,9 @@
   (note "end emit-cons")
   )
 
-(define (emit-print-value args)
+(define (emit-print-value . args)
   (note "emit-print-value ~a " args)
-  (save reg0)
-  (call "print-value" (car args) )
-  (restore reg0)
+  (apply call "print-value" args)
   )
 
 
@@ -209,6 +191,7 @@
           (note "cdr ~a" args)
           (set reg2 (car args))
           (sar reg2 type-shift)
+          (note "add reg2 word-size 1")
           (add reg2 (word-size 1))
           (mref reg0 reg2 "cdr pair")
         ]
@@ -264,12 +247,6 @@
 
 
   (define-primitive (print-dot arg0)
-  ; (let ((lend (gen-sym 'lend))
-  ;       (l1 (gen-sym 'lpair))
-  ;       (l2 (gen-sym 'lpair))
-  ;       (l3 (gen-sym 'lpair))
-  ;       (l4 (gen-sym 'lpair))
-  ;     )
     (set reg0 (local 0))
     ;;(set reg0 reg1)
     (sar reg0 ,type-shift)
@@ -279,7 +256,7 @@
     (save reg2)
 
     (mref reg0 reg2 "car pair")
-    (emit-print-value (list reg0))
+    (emit-print-value  reg0)
 
     (restore reg2)
     (restore reg1)
@@ -298,102 +275,83 @@
     (save reg0)
     (save reg1)
     (save reg2)
-    (emit-print-value (list reg0))
+    (emit-print-value reg0)
     (restore reg2)
     (restore reg1)
     (restore reg0)
     (label print-dot-l4)
     (ret)
-  ; )
 )
 
 (define-primitive (print-list arg0)
-  ; (let ((lend ,(gen-sym 'lend))
-  ;       (l8 ,(gen-sym 'llist))
-  ;       (l7 ,(gen-sym 'llist))
-  ;       (l6 ,(gen-sym 'llist))
-  ;       (l5 ,(gen-sym 'llist))
-  ;       (l4 ,(gen-sym 'llist))
-  ;       (l3 ,(gen-sym 'llist))
-  ;       (l2 ,(gen-sym 'llist))
-  ;       (l1 ,(gen-sym 'llist))
-  ;     )
-  
+    (save reg0)
+    (save reg1)
+    (save reg2)
     ;;save arg0 to reg1
     (set reg1 (local 0))
-    
-    (label print-list-l1)
     (set reg0 reg1)
+
+    (label print-list-l1)
     
     (note "is pair?")
     (land reg0 ,type-mask)
     (cmp-jmp reg0 ,pair-tag print-list-l2 print-list-lend)
-    (label print-list-l2)
 
-    ;;get reg0 car
+    ;;reg0 is pair
+    (label print-list-l2)
+    ;;reg0=car(pair)
     (set reg0 reg1)
-    (sar reg0 ,type-shift)  
+    (sar reg0 ,type-shift)
     (set reg2 reg0)
-    (mref reg0 reg2 "car pair")
-  
-    (save reg0)
-    (save reg1)
-    (save reg2)
-    (emit-print-value (list reg0))
+    (mref reg0 reg2 "reg0=car pair")
+    ;;print car value
+    (emit-print-value  reg0)
+
+    ;;reg1=cdr(pair)
+    (set reg0 reg1)
+    (sar reg0 ,type-shift)
+    (add reg0 ,(word-size 1))
+    (mref reg1 reg0 "reg1=cdr pair")
+    
+    ;;reg1=cdr(pair)
+    ;;is cdr ==0
+    (set reg0 reg1)
+    (note "is end break")
+    (cmp-jmp reg0 0 print-list-lend print-list-l3)
+    (label print-list-l3)
+    (note "check reg1=cdr(pair) is null")
+    (cmp-jmp reg0 null-rep print-list-lend ())
+    (note "check reg1=cdr(pair) is pair")
+    (land reg0 ,type-mask)
+    (cmp-jmp reg0 ,pair-tag print-list-l4 print-list-l6)
+    ;;reg0 =cdr(pair) is pair
+    (label print-list-l4)
+    (emit-printf " ")
+    (jmp print-list-l8)
+    ;; is dot
+    (label print-list-l6)
+    (emit-printf " . ")
+    (emit-print-value  reg1)
+
+    (label print-list-l8)
+    ;;loop next
+    (set reg0 reg1)
+    (jmp print-list-l1)
+
+    (label print-list-lend)
     (restore reg2)
     (restore reg1)
     (restore reg0)
 
-    ;;set reg0 cdr
-    (set reg0 reg1)
-    (sar reg0 ,type-shift)
-    (set reg2 reg0)
-    (add reg2 ,(word-size 1) )
-    (mref reg0 reg2 "cdr pair")
-    (set reg1 reg0)
-    
-    ;; cdr = reg1
-    ;;is cdr ==0
-    (note "is end break")
-    (cmp-jmp reg1 0 print-list-lend print-list-l3)
-    (label print-list-l3)
-   
-    (note "car is null")
-    (set reg0 reg1)
-    (cmp-jmp reg0 null-rep print-list-lend ())
-
-    (note "is pair")
-    (set reg0 reg1)
-    (land reg0 ,type-mask)
-    (cmp-jmp reg0 ,pair-tag print-list-l4 print-list-l6)
-    (label print-list-l4)
-    (emit-printf " " reg0)
-    (jmp print-list-l8)
-    (label print-list-l6)
-    (emit-printf " . " reg0)
-
-    (set reg0 reg1)
-    (emit-print-value (list reg0)) 
-
-
-    (label print-list-l8)
-    (set reg0 reg1)
-
-    (jmp print-list-l1)
-
-    (label print-list-lend)
     (ret)
-  ; )
 )
 
 (define-primitive (print-value arg0)
-    ; (let ((lend (gen-sym 'lend))
-    ;   )
       ;;param reg0
       ;;save param0
-      ; (save reg0)
-      ; (save reg1)
-      ; (save reg2)
+      (save reg0)
+      (save reg1)
+      (save reg2)
       (set reg1 (local 0))
       ;;print pair
       (note "print pair")
@@ -448,12 +406,10 @@
 
       (label print-value-lend)
 
-      ; (restore reg2)
-      ; (restore reg1)
-      ; (restore reg0)
-
+      (restore reg2)
+      (restore reg1)
+      (restore reg0)
       (ret)
-      ; )
 )
 
 

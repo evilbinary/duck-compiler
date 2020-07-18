@@ -2,15 +2,15 @@
 (import (scheme) (test) (duck) )
 
 (add-test "test define"
-  [(define a 100) '(define a 100)]
+  [(define a 100) ""]
   [(define square
       (lambda (x)
         (* x x)))
-    '(k (lambda (k p) (lambda (r0) (lambda (r0) ()))))
+    ""
   ]
   [(define (square x)
         (* x x))
-    '(k (lambda (k p) (lambda (r0) (lambda (r0) ()))))
+    ""
   ]
   [(begin 
     (define fib (lambda (n)
@@ -35,15 +35,15 @@
     (printc "test=%d" (fib 10))
     ) '()]
 
-[(begin
-    (define fib (lambda (n) 
-        (printc "fib(%d)" n)
-        (fib (- n 1))
-     ))
-    (fib 10)
-    )
-'()
-]
+  ; [(begin
+  ;     (define fib (lambda (n) 
+  ;         (printc "fib(%d)" n)
+  ;         (fib (- n 1))
+  ;      ))
+  ;     (fib 10)
+  ;     )
+  ; '()
+  ; ]
   
 )
 

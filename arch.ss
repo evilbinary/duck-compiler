@@ -10,26 +10,23 @@
     reg0 reg1 reg2 reg3 reg4 reg5 reg6 reg7 regs regs-map
     ;;instruct
     asm set mref mset note
-    add label sar sal
+    add label sar sal mul sub div
     shl shr ret
-    call jmp cmp-jmp
+    call jmp cmp-jmp cmp
     land xor save restore
     nop local proc
     fcall
-    
     stext sexit 
     data sdata
-    cmp->inst
-    binop->inst
     asm-compile-exp
     arch-bits
     
   )
 
-(import (scheme)
+(import 
+    (common)
     (match)
     (trace)
-    (common)
     (x86)
     )
 

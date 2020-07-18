@@ -43,13 +43,13 @@
     [(pair? '(1 . 2)) #t]
     [(pair? (cons 1 2)) #t]
     [(car (cons 1 2)) 1]
-
-    ; [(cdr (cons 1 2)) 2]
     [(cons 1 2) (1 . 2)]
-    ;['(1 2) (1 . 2)]
-    ; [(null? (cdr (cons 1 '()))) #t]
-    ; [(cdr (cons 1 2)) 2]
+
+    [(cdr (cons 1 2)) 2]
+    [(null? (cdr (cons 1 '()))) #t]
+
     ; [(car '(1 . 2)) 1]
+    ; ['(1 2) (1 . 2)]
  
 
     ; (vector-ref '#(1 2 3) 1)

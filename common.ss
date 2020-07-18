@@ -21,9 +21,14 @@
 
   asm
   note
+  
    )
 
-  (import (scheme))
+  (import 
+    (scheme)
+    (rename (scheme) (div div2) )
+
+  )
 
 
 (define (asm . args)
