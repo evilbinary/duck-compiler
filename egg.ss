@@ -99,34 +99,63 @@
 ;; code ,data
 (define (flatten-conversion exp)
   (define (flatten exp)
+    (printf "flatten===>~a\n" exp)
     (match exp
       [(let ((,proc (lambda (,args ...) ,body ... ))) ,e)
+      (printf "proc==> ~a args=~a body=~a  e=~a\n" proc args  body  e)
         (flatten `(codes
-            (proc ,proc (local ,args ,@body) )
+            (proc ,proc (local ,args ,@(map flatten body) ))
             ,(flatten e)
           ))
       ]
       [(let ((,var ,e1)) ,e2)
-        (printf "let ~a ~a\n" e1 e2)
+        (printf "let ==> ~a ~a\n" e1 e2)
         (flatten  `(codes 
             (local (,var)
-              (set ,var ,e1)
+              (set ,var ,(flatten e1))
               ,(flatten e2)
             )
           ))
+      ]
+      [(if ,a ,b ,c)
+        (printf "if==> ~a  ~a ~a"  a b c)
+        `(if ,(flatten a) ,(flatten b) ,(flatten c))
+      ]
+      [(set! ,var ,val)
+         (printf "set!==> ~a  ~a"  var val)
+          (flatten 
+            `(let ((,var ,val ))
+               ,var))
+      ]
+      [(tail ,app ,args ...)
+        ;;`(jmp ,app) ;;args
+        `(,app ,@args)
+      ]
+      [(,binop ,a ,b)
+        (guard (memq binop '(> < >= < <= =) ))
+        `(,binop ,a ,b)
+      ]
+      [(,binop ,a ,b)
+        (guard (memq binop '(+ - * /) ))
+        `(,binop ,a ,b)
+      ]
+      [,v 
+        (guard (number? v))
+        v
       ]
       [,v 
         (guard (symbol? v))
         v
       ]
-      [(proc ,l ,args ,body)
-        `(proc ,l ,args body)
+      [(proc ,l ,args ,body ...)
+        `(proc ,l ,args  ,@(map flatten body))
       ]
-      [(local ,args ...)
-        `(local ,args ...)
+      [(local ,args ,body ...)
+        (printf "local==>args=~a body=~a\n" args body)
+        `(local ,args ,body)
       ]
-      [(,app ,args)
-        `(,app ,args)
+      [(,app ,args ...)
+        `(,app ,@args )
         ; `(call ,app ,args)
       ]
       ; [(call ,args ...)
@@ -134,11 +163,16 @@
       ;   `(call ,args ...)
       ; ]
       [(set ,v ,e)
-        (printf "set ~a=~a\n" v e)
-        `(set ,v ,e)
+        (printf "set==> ~a=~a\n" v e)
+        `(set ,v ,(flatten e))
+      ]
+      [(codes ,body ...)
+        (printf "codes===> ~a\n" body)
+        `(codes ,@(map flatten body))
       ]
       [,exp 
-        (printf "unkown exp->~a\n" exp)
+        ;;(printf "unkown exp->~a\n" exp)
+        (error 'flatten "flatten erro" exp)
         exp
       ]))
 
@@ -146,7 +180,9 @@
   (flatten exp)
 )
 
+;;conver codes =>instruct
 (define (instruct-conversion exp)
+    (printf "instruct-conversion ~a\n" exp)
     (match exp
       [(codes ,c* ...)
         `(instruct ,@(map instruct-conversion c*) )
@@ -163,18 +199,17 @@
       [(local ,args ,e* ...)
         `(local ,args ,@(map instruct-conversion e*) )
       ]
-      [(set ,var (,app ,arg))
-        `(instruct 
-           (call ,app (arg ,arg)) ;;reg0
-           (set ,var reg0)
-        )
-      ]
       [(set ,var ,val)
+        (printf "set=>~a ~a\n" var val)
         `(set ,var ,(instruct-conversion val))
       ]
-      [(set! ,var ,val)
-        `(set ,var ,(instruct-conversion val))
-      ]
+      ;  [(set ,var (,app ,arg))
+      ;   (printf "set app==>~a ~a ~a\n" var app arg)
+      ;   `(instruct 
+      ;      (call ,app (arg ,arg)) ;;reg0
+      ;      (set ,var reg0)
+      ;   )
+      ; ]
       [(if ,a ,b ,c)
         (let ((l1 (gen-sym 'ifa))
               (l2 (gen-sym 'ifb))
@@ -207,6 +242,12 @@
       [(- ,a ,b)
         `(sub ,a ,b)
       ]
+      [(,app (arg ,args ...) )
+        (guard (prim? app))
+        `(instruct
+          (call ,app (arg ,@args))
+        )
+      ]
       [(,app ,args ...)
       ;;(printf "call app ~a ~a\n" app args)
       `(instruct
@@ -236,6 +277,12 @@
       [(assq key env) => cdr]
       [else key]))
 
+  (define (lookup-value val env)
+    (printf "lookup val=~a env=~a\n" val env)
+    (cond
+      [(> (length (filter (lambda(x) (printf "haa~a\n" x) (= 0 (cdr x))) env)) 0) val]
+      [else '()]))
+
   (define (ext key val env)
     (cond
       [(eq? key val) env]
@@ -259,9 +306,10 @@
       [(local ,args ,e* ...)
         (let ((rargs (let loop ((offset 0) (i args) (of '()))
                 (if (pair? i)
-                  (begin 
-                    (set! env (ext (car i) offset env) )
-                    (printf "env ~a\n" env)
+                  (let ((loc (lookup-value offset env) ))
+                    (printf "extend before env= ~a offset=~a loc=~a\n" env offset loc)
+                    (set! env (ext (car i) (if (null? loc) offset (+ loc 1)) env) )
+                    (printf "extend env= ~a\n" env)
                     (loop (+ offset 1) (cdr i) (append of (list offset)) ))
                   of
                 )
@@ -341,6 +389,32 @@
   (assign exp '())
 )
 
+;;(local ,args ,e* ...) => (instruct e* ...)
+(define (remove-local exp)
+  (match exp
+    [(instruct (proc ,var (local ,args ,e* ...)))
+      `(instruct (proc ,var)  ,@(map remove-local e*)) ;(local ,args)
+    ]
+    [(instruct (local ,args ,e* ...))
+    (printf "===>instruct local args=~a body=~a\n" args e*)
+    `(instruct  ,@(map remove-local e*)) ;(local ,args)
+    ]
+    [(instruct ,c* ...)
+      `(instruct ,@(map remove-local c*) )
+    ]
+    [(,app ,a ,b)
+      (printf "===>app ~a ~a ~a\n" app a b)
+      `(,app ,(remove-local a) ,(remove-local b))
+    ]
+    ; [(,app ,a)
+    ;   `(,app ,(remove-local a))
+    ; ]
+    [,exp
+      (printf "unkown exp->~a\n" exp)
+      exp
+    ]
+))
+
 (define (lib-asm-conversion exp)
     (remove-local (assign-conversion exp))
 )
@@ -404,27 +478,6 @@
     )
   )
 )
-
-
-(define (remove-local exp)
-  (match exp
-    [(instruct (proc ,var (local ,args ,e* ...)))
-      `(instruct (proc ,var) ,@e*)
-    ]
-    [(instruct (local ,args ,e* ...))
-    `(instruct ,@(map remove-local e*))
-    ]
-    [(instruct ,c* ...)
-      `(instruct ,@(map remove-local c*) )
-    ]
-    ; [(,app ,a)
-    ;   `(,app ,(remove-local a))
-    ; ]
-    [,exp
-      (printf "unkown exp->~a\n" exp)
-      exp
-    ]
-))
 
 ;; flatten code 
 ;; (code ....)

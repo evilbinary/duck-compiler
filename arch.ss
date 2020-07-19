@@ -15,7 +15,7 @@
     call jmp cmp-jmp cmp
     land xor save restore
     nop local proc
-    fcall
+    fcall ccall
     stext sexit 
     data sdata
     asm-compile-exp

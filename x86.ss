@@ -14,7 +14,7 @@
     land xor save restore
     nop local proc
 
-    fcall
+    fcall ccall
     stext sexit
     asm-compile-exp
     data sdata
@@ -150,6 +150,49 @@
   )
 )
 
+(define (carg . args)
+  (if (> (length args) 0)
+      (let l ((arg  args) (i 0)) 
+          (if (pair? arg)
+              (begin
+                (cond
+                  [(number? (car arg))
+                    (note "number arg=~a" (car arg))
+                    (asm "mov ~a,~a" reg0 (car arg))
+                    (sar reg0 type-shift)
+                    (asm "mov dword [esp+ ~a], ~a" (* i 4) reg0 )
+                  ]
+                  [(list? (car arg)) 
+                    (note "list arg=~a" (car arg))
+                    (asm "mov ~a,~a" reg0 (operands-rep (car arg)) )
+                    (sar reg0 type-shift)
+                    (asm "mov dword [esp+ ~a], ~a" (* i 4) reg0)
+                  ]
+                  [(string? (car arg))
+                    (note "string arg=~a" (car arg))
+                    (asm "mov ~a,~a" reg0 (symbol->asm-id (car arg)) )
+                    (sar reg0 type-shift)
+                    (asm "mov dword [esp+ ~a], ~a"  (* i 4) reg0 )
+                  ]
+                  [(memq (car arg) regs-map) 
+                    (note "reg arg=~a" (car arg))
+                    (asm "mov ~a,~a" reg0 (operands-rep (car arg)) )
+                    (sar reg0 type-shift)
+                    (asm "mov dword [esp+ ~a], ~a" (* i 4) reg0 )
+                  ]
+                  [else
+                    (note "else arg=~a" (car arg))
+                    (asm "mov ~a,~a" reg0 (operands-rep (car arg)) )
+                    (sar reg0 type-shift)
+                    (asm "mov dword [esp+ ~a],~a" (* i 4) reg0)
+                  ]
+              )
+              (l (cdr arg)  (+ i 1)))
+          )
+      )
+  )
+)
+
 (define cmp->inst
     (lambda (op)
       (case op
@@ -242,6 +285,21 @@
   (* 16 (flonum->fixnum (+ 0.9 (/ (* 4 (length args)) 16))))
 )
 
+(define (ccall l . args)
+  (asm "cproc ~a" (align args))
+  ; (if (> (length args) 0)
+  ;   (begin 
+  ;     (asm "and esp,0xFFFFFFF0")
+  ;     (asm "sub  esp,~a" (align args))
+  ;    ))
+  (apply carg args)
+  (asm "call _~a" (symbol->asm-id l))
+  ; (if (> (length args) 0)
+  ;   (asm "add esp, ~a" (align args) )
+  ;   )
+  (asm "ceproc ~a" (align args))
+  )
+
 (define (fcall l . args)
   (asm "cproc ~a" (align args))
   ; (if (> (length args) 0)
@@ -291,9 +349,10 @@
 (define set
   (case-lambda 
     [(a b) 
+      (note "set ~a ~a (list? a)=~a" a b (list? a))
       (unless (equal? a b)
         (begin 
-          (if (and (list? a) (symbol? b))
+          (if (and (list? a) (or (list? b) (symbol? b)))
             (begin 
               (asm "mov ~a,~a" reg0 (operands-rep b) )
               (asm "mov ~a,~a" (operands-rep a) reg0 ))
@@ -331,7 +390,7 @@
   )
 
 (define (sub a b)
-  (if (number? a)
+  (if (or (number? a) (list? a))
     (begin 
       (asm "mov ~a,~a" reg0 (operands-rep a))
       (asm "sub ~a,~a" reg0 (operands-rep b))
@@ -345,14 +404,14 @@
   (asm "xor edx,edx")
   (asm "mov ~a,~a" reg0 (operands-rep a))
   (asm "mov ~a,~a" reg2 (operands-rep b))
-  (asm "mul ~a"  reg0)
+  (asm "mul ~a"  reg2)
   )
 
 (define (div a b)
   (asm "xor edx,edx")
   (asm "mov ~a,~a" reg0 (operands-rep a))
   (asm "mov ~a,~a" reg2 (operands-rep b))
-  (asm "div ~a"  reg0)
+  (asm "div ~a"  reg2)
   )
 
 (define (proc l)

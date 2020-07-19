@@ -12,6 +12,7 @@
         (* x x))
     ""
   ]
+  ;;no pass
   [(begin 
     (define fib (lambda (n)
        ;;(printc "fib[%d] \\n" n)
@@ -35,15 +36,15 @@
     (printc "test=%d" (fib 10))
     ) '()]
 
-  ; [(begin
-  ;     (define fib (lambda (n) 
-  ;         (printc "fib(%d)" n)
-  ;         (fib (- n 1))
-  ;      ))
-  ;     (fib 10)
-  ;     )
-  ; '()
-  ; ]
+  [(begin
+      (define fib (lambda (n) 
+          (printc "fib(%d)" n)
+          (fib (- n 1))
+       ))
+      (fib 10)
+      )
+  '()
+  ]
   
 )
 
