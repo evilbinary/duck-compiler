@@ -41,13 +41,17 @@
   [(define (,v ,e) ,e1)
     (ast-conversion `(define v (lambda (,e) ,e1)) )
   ]
+  [(define ,v (lambda (,args ...) ,body ))
+    (ast-conversion 
+     `(let ((,v  (lambda (,args ...) ,body ) )) ,v )
+        )
+  ]
   [(define ,v ,e)
     (printf "define ~a ~a\n" v e)
     ;;`(set! ,v ,(ast-conversion e) )
      (ast-conversion 
-     `(let ((,v (set! ,v 0)))
-          (let ((,v ,e )) ,v )
-        ))
+     `(let ((,v ,e )) ,v )
+        )
     ]
   ; [(begin ,e1 ,e2) 
   ;   `(let ((,e1))
@@ -420,9 +424,9 @@
       represent-conversion
       flatten-conversion
       instruct-conversion
+      instruct-optimize
       assign-conversion
-      remove-local
-      restruct-instruct-body
+      restruct-block
     )))
 )
 

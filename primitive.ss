@@ -243,7 +243,7 @@
    [(_ (prim-name arg* ...) body body* ...)
     (define prim-name
         (lambda () 
-            `(proc prim-name (local (arg* ...)  body body* ... ))
+            `(block prim-name   body body* ... ) ;;(local arg* ... )
         )
       )
   ]))
@@ -375,7 +375,7 @@
 
         ;;(call "print-dot"  (arg reg0))   
         ;;reg1 is origin value
-        (call "print-list" (arg reg1))
+        (call "print-list" reg1)
         
         (emit-printf ")")
         (jmp print-value-lend)

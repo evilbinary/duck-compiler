@@ -14,6 +14,14 @@
     "=>0 1"
   ]
 
+   [(let ((n 3))
+        (if (= n 0)
+                1
+                (if (= n 1)
+                  2
+                  3)))
+               3]
+
   ; no pass
   [(let ((idx (lambda (x) x))
           (a 10)

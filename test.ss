@@ -39,6 +39,7 @@
     ))
 
 (define (test case)
+    ;;(pretty-one-line-limit 1)
     (let ((name (car case))
           (exps (cadr case))
           (cmp (if (procedure? (caddr case)) (caddr case) equal? ))
@@ -98,6 +99,12 @@
     ))
 
 (define (test-all)
+    (pretty-format 'set '(_ x y))
+    (pretty-format 'local '(_ x))
+    (pretty-format 'print-value '(_ x))
+    (pretty-format 'null? '(_ x))
+    (pretty-format 'block '(_ name  0 ... ))
+    (pretty-format 'program '(_ name 0 args 0 vars  ... ))
   (let ((total 0)
         (passed 0)
         (failed 0)

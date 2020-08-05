@@ -18,7 +18,7 @@
   asm-data-add
   asm-data-clear
   get-asm-data-define
-
+  mapc
   asm
   note
   
@@ -30,6 +30,7 @@
 
   )
 
+(define mapc for-each)
 
 (define (asm . args)
   (apply printf  args)

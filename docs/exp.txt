@@ -87,3 +87,119 @@ cut(branch),takeoff(leaf)。
 
 
 
+
+
+(let ([fib (lambda (n)
+             (let ([var.4 (alloc "fib(%d)")])
+               (let ([var.0 (printc var.4 n)])
+                 (let ([var.5 (- n 8)]) (tail fib var.5)))))])
+  (let ([var.1 fib]) (fib 80)))
+
+==>
+
+(program 'main
+  ();; args
+  ();; vars
+
+  (program 'fib 
+    (n);; args
+    (var.4 var.0 var.5 var.1) ;; local global vars
+    (alloc "fib(%d)")
+    (set var.4 ret)
+    (printc var.4 n)
+    (set var.0 ret)
+    (- n 8)
+    (set var.5 ret)
+    (call fib var.5)
+  )
+
+  (program 'main 
+    ();; args
+    (var.1 fib) ;; vars
+    (set var.1 fib)
+    (call fib 80)
+  )
+
+)
+
+
+
+(let ([fib (lambda (n)
+             (let ([var.4 (alloc "fib(%d)")])
+               (let ([var.0 (printc var.4 n)])
+                 (let ([var.5 (- n 8)]) (tail fib var.5)))))])
+
+=>
+(program main () ()
+  (program fib (n)
+           (var.4 var.0 var.5)
+           (alloc "fib(%d)")
+    (set var.4 ret)
+    (printc var.4 n)
+    (set var.0 ret)
+    (- n 8)
+    (set var.5 ret)
+    (tail fib var.5))
+  (program main
+           ()
+           (fib var.1)
+           fib
+           (set var.1 ret)
+           (fib 80))
+
+=>
+(program main
+  (program fib 
+    (set (local 1) ret)
+    (printc (local 1) (local 0))
+    (set (local 2) ret)
+    (- (local 0) 8)
+    (set (local 3) ret)
+    (tail fib (local 3))
+  )
+  (program main
+    (fib (local 0))
+    (set (local 0) ret)
+    (fib 80)
+  )
+)
+
+=>
+
+(program main
+  (program fib 
+    (mov esp+4 eax)
+    (printc (local 1) (local 0))
+    (set (local 2) ret)
+    (- (local 0) 8)
+    (set (local 3) ret)
+    (tail fib (local 3))
+  )
+  (program main
+    (fib (local 0))
+    (set (local 0) ret)
+    (fib 80)
+  )
+)
+
+=>
+
+(block all
+  (block main
+    (fib (local 0))
+    (set (local 0) ret)
+    (fib 80)
+  )
+  (block fib
+    (mov esp+4 eax)
+    (printc (local 1) (local 0))
+    (set (local 2) ret)
+    (- (local 0) 8)
+    (set (local 3) ret)
+    (tail fib (local 3))
+  )
+  (block data
+
+  )
+
+)
