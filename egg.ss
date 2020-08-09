@@ -171,10 +171,73 @@
 
 
 (define (remove-code e)
-    (printf " remove-code ~a\n" e)
-    e
-      
+    (define result '())
+    (define (collect-exp ex)
+      (set! result (append result (list ex)))
+    )
+    (define (match-exp ex)
+      (match ex
+        [(,app ,args ...)
+          (guard (not (equal? app 'code)))
+          #t
+        ]
+        [,v #f]
+      )
+    )
+
+    (define (remove-p e k)
+      (printf ">>>>>>>>>>remove-p ~a\n" e)
+      (match e
+        ; [(code (,apps ...))
+        ;   (printf " remove-code1 ~a\n" apps)
+        ;   (k `( ,@apps))
+        ; ]
+        [(code ,exps ...)
+          (printf " remove-code3 ~a\n" e)
+          (let ((ret (remove-p* exps id) ))
+            ; (if (match-exp ret)
+            ;   (k `(code ,@ret ))
+            ;   (k `( ,@ret))
+            ; )
+            (k `(code ,@ret))
+          )
+        ]
+        [(,apps ...)
+          (k `(,@apps))
+        ]
+        [,v
+          (guard (or (number? v) (symbol? v)))
+          (k v)
+        ]
+        [,exp 
+        (printf "unkown exp->~a\n" exp)
+        (error 'remove-code "remove-code erro" exp)
+      ]
+      )
+    )
+
+  (define (remove-p* exp* k)
+    (printf "=======>remove-p* ~a\n" exp* )
+    (if (null? exp*)
+      (begin 
+        (printf "----------->exps end exp*=~a\n" exp*)
+        (k exp*)
+      )
+      (remove-p (car exp*) 
+        (lambda (t)
+          (printf " (car exp*)=~a ret=>~a match=~a\n" (car exp*) t (match-exp t))  
+          (if (match-exp t)
+            (collect-exp t)
+          )        
+          (remove-p* (cdr exp*)
+            (lambda (t*) 
+              (printf "=======>t=~a t*=~a\n" t t*)
+              (k `(,t . ,t*)))) ))
+    )
   )
+  (remove-p e id)
+  result
+)
 
 ;;conver codes =>instruct
 (define (instruct-conversion exp)
@@ -183,10 +246,11 @@
     [(program ,name ,vars ,args ,e ...)
       (printf "   program=> ~a ~a ~a ~a\n" name vars args e)
       (let ((instructs (map instruct-conversion e)))
+        (printf "   instructs=>~a\n" instructs)
         (set! instructs (remove-code `(code ,@instructs)) )
-        (printf "instructs=>~a\n" instructs)
+        (printf "   instructs2=>~a\n" instructs)
         `(program ,name ,vars ,args 
-            ,@(car instructs) ,@(cdr instructs) ))
+            ,@instructs ))
     ]
     [(if ,a ,b ,c)
         (let ((l1 (gen-sym 'ifa))
@@ -197,7 +261,7 @@
             (cmp-jmp reg0 false-rep ,l2 ,l1)
             (label ,l1)
             ,(instruct-conversion b)
-            (jmp ,l3)
+             (jmp ,l3)
             (label ,l2)
             ,(instruct-conversion c)
             (label ,l3)
@@ -420,7 +484,6 @@
           (ret))
           )
        ]
-
       [(sdata)
         (sdata)
       ]
