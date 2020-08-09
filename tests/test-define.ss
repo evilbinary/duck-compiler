@@ -14,49 +14,49 @@
   ; ]
 
   ; [(begin
-;       (define hello (lambda (n)
-;           (printc "hello")
-;        ))
-;       (hello)
-;       )
-;   "hello"
-;   ]
+  ;     (define hello (lambda (n)
+  ;         (printc "hello")
+  ;      ))
+  ;     (hello)
+  ;     )
+  ; "hello"
+  ; ]
 
 
-  [(begin
-      (define fib (lambda (n) 
-          (printc "fib(%d)" n)
-          (fib (- n 1))
-       ))
-      (fib 10)
-      )
-  '()
-  ]
+  ; [(begin
+  ;     (define fib (lambda (n) 
+  ;         (printc "fib(%d)" n)
+  ;         (fib (- n 1))
+  ;      ))
+  ;     (fib 10)
+  ;     )
+  ; '()
+  ; ]
 
   ;;no pass
 
-  ; [(begin 
-  ;   (define fib (lambda (n)
-  ;      ;;(printc "fib[%d] \\n" n)
-  ;      (if (= n 0)
-  ;        (begin 
-  ;           (printc "1 ")
-  ;           0
-  ;           )
-  ;        (if (= n 1)
-  ;           (begin 
-  ;           (printc "2 ")
-  ;           1
-  ;           )
-  ;           (begin 
-  ;               (printc "f2[%d] " n)
-  ;               (+ (fib (- n 1)) (fib (- n 2)))
-  ;           )
-  ;        )
-  ;        )
-  ;        ))
-  ;   (printc "test=%d" (fib 10))
-  ;   ) '()]
+  [(begin 
+    (define fib (lambda (n)
+       ;;(printc "fib[%d] \\n" n)
+       (if (= n 0)
+         (begin 
+            (printc "1 ")
+            0
+            )
+         (if (= n 1)
+            (begin 
+            (printc "2 ")
+            1
+            )
+            (begin 
+                (printc "f2[%d] " n)
+                (+ (fib (- n 1)) (fib (- n 2)))
+            )
+         )
+         )
+         ))
+    (printc "test=%d" (fib 10))
+    ) '()]
 
 
   

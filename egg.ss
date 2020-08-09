@@ -108,6 +108,13 @@
         (printf "vars=>~a\n" vars)
         vars
       ]
+      [(if ,a ,b ,c)
+        (set! vars (append vars
+          (find-vars a vars)
+          (find-vars b vars)
+          (find-vars c vars)))
+        vars
+      ]
       [(,app ,args ...)
         (printf "find app ==> ~a ~a\n" app args)
         vars
@@ -142,11 +149,11 @@
       ]
       [(let ((,var ,e1)) ,e2)
         (printf "let ==> ~a ~a ~a\n" var e1 e2)
-        `(
-          (set ,var ,@(flatten e1))
-          ,@(flatten e2) 
-          )
+        `((let ((,var ,e1)) ,e2))
       ]
+      [(if ,a ,b ,c)
+       `((if ,a ,b ,c))
+       ]
       [(,app ,args ...)
         (printf "app ==> ~a ~a\n" app args)
         `((,app ,@args))
@@ -251,6 +258,14 @@
         (printf "   instructs2=>~a\n" instructs)
         `(program ,name ,vars ,args 
             ,@instructs ))
+    ]
+    [(let ((,var ,e1)) ,e2)
+      (printf "let ==> ~a ~a ~a\n" var e1 e2)
+      `(code
+        ,(instruct-conversion e1)
+        (set ,var reg0)
+        ,(instruct-conversion e2) 
+        )
     ]
     [(if ,a ,b ,c)
         (let ((l1 (gen-sym 'ifa))
@@ -468,7 +483,7 @@
     (note "inst ~a" cur)
     (match cur
       [(block ,name ,blocks ...)
-        (let ((is-main  (or (equal? name 'main ) (equal? name 'all ))))
+        (let ((is-main (memq  name '(main all data ))))
         (if (not is-main)
           (proc name))
         (let loop [(i blocks)]
