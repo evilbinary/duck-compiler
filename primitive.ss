@@ -31,6 +31,7 @@
     (type)
     )
 
+
 (define (prim? prim)
   (memq prim '(printc void cons car cdr pair? null? alloc free) )
 )

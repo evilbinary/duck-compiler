@@ -14,7 +14,6 @@
     assign-conversion
     restruct-block
     instruct-optimize
-
     remove-code
   )
 
@@ -24,8 +23,9 @@
     (trace)
     (common)
     (arch)
-    (primitive)
+    (libs)
     (type)
+    (options)
     )
 
 
@@ -47,6 +47,9 @@
       (printf "==>let ~a ~a\n" v exp1 )
       `(let ([,v ,(represent-conversion exp1) ])
           ,(represent-conversion exp2) )
+    ]
+    [($asm ,args ...)
+      `($asm ,@args)
     ]
     [,v
       (guard (string? v))
@@ -296,7 +299,9 @@
         (set ,var ,val)
       )
     ]
-    
+    [($asm ,args ...)
+      `($asm ,@args)
+      ]
     [(,app ,args ...)
       (guard (prim? app))
       `(code (,app ,@args ))
@@ -379,6 +384,9 @@
               (assign i lenv) ) c*) )
           )
       ]
+      [($asm ,args ...)
+      `($asm ,@args)
+      ]
       [(,binop ,a ,b)
         (guard (memq binop '(> < >= < <= = + - * /) ))
         `(,binop ,(assign a env)
@@ -430,7 +438,7 @@
           ))
         (block-libs `(
           ,(assign-conversion `,(print-value))
-          ; (instruct ,(print-dot))
+          ; (assign-conversion ,(print-dot))
           ,(assign-conversion `,(print-list))
            ))
        )
@@ -466,7 +474,7 @@
     ;;defs block
     ,block-defs
     ;;
-    ,@block-libs
+    ,@(if need-primitive block-libs `() )
     ;;data block
     (block data
       (sdata)
@@ -480,7 +488,7 @@
 ;; (code ....)
 (define (emit-code exp env)
   (define (emit-p cur env)
-    (note "inst ~a" cur)
+    (note "emit-code ~a" cur)
     (match cur
       [(block ,name ,blocks ...)
         (let ((is-main (memq  name '(main all data ))))
@@ -632,6 +640,16 @@
       [(print-list) (print-list)]
       [(print-dot) (print-dot)]
 
+      [($asm ` ,e  )
+        (note "$asm ~a" e)
+        (emit-p e env)
+      ]
+      [($asm ,args ...)
+        (note "$asm ~a" (map  (lambda (e)
+            (emit-p e env)) args ) )
+        (apply asm (map  (lambda (e)
+            (emit-p e env)) args ))   
+      ]
       ;;prim call 
       [(,app ,args ...)
         (guard (prim? app))

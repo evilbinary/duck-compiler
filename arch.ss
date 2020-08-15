@@ -20,14 +20,12 @@
     data sdata
     asm-compile-exp
     arch-bits
-    
   )
 
-(import 
+(import
     (common)
     (match)
     (trace)
     (x86)
     )
-
 )

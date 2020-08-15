@@ -59,7 +59,7 @@
                       (ret '())
                       (out '())
                     (result  (cdr e))
-                    (test-name (format "~a.~a" (string-replace #\space #\. name) i))
+                    (test-name (format "~a.~a" (string-replace #\space #\. (string-replace #\space #\. name)) i))
                     )
                   (set! total (+ total 1))
                   ;;(printf "   exp=~a\n"   (cadar e) ) ;;(cadadr e ) 

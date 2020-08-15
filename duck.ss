@@ -214,6 +214,9 @@
     [(lambda (,params ...) ,body)
       (k `(lambda ,params ,(anf-term body)))
     ]
+    [($asm ,args ...)
+      `($asm ,@args)
+    ]
     [(if ,e1 ,e2 ,e3)
       (printf "if->~a ~a ~a k=~a\n" e1 e2 e3 k)
       ; `(if ,(anf e1 id) ,(anf e2 k) ,(anf e3 k) )
