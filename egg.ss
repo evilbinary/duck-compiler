@@ -28,7 +28,6 @@
     (options)
     )
 
-
 (define symbols (get-sym))
 
 (define (clear-gen-symbol)
@@ -455,6 +454,9 @@
         )
         `(program ,name ,@bodys )
       ]
+      [($asm ,bodys ...)
+        (mapc collect `(program main ,@bodys))
+      ]
       ;;default in main
       [,exp  
         (set! block-main (append  block-main `(,exp)  ))
@@ -474,7 +476,7 @@
     ;;defs block
     ,block-defs
     ;;
-    ,@(if need-primitive block-libs `() )
+    ,@(if (option-get 'need-primitive) block-libs `() )
     ;;data block
     (block data
       (sdata start)
@@ -636,16 +638,14 @@
       [(print-value) (print-value)]
       [(print-list) (print-list)]
       [(print-dot) (print-dot)]
-
-      [($asm ` ,e  )
+      [(asm ,e )
         (note "$asm ~a" e)
-        (emit-p e env)
+        (asm e)
       ]
       [($asm ,args ...)
-        (note "$asm ~a" (map  (lambda (e)
-            (emit-p e env)) args ) )
-        (apply asm (map  (lambda (e)
-            (emit-p e env)) args ))   
+        (note "$asm ~a" args )
+        (mapc  (lambda (e)
+            (emit-p e env)) args )
       ]
       ;;prim call 
       [(,app ,args ...)
@@ -699,7 +699,8 @@
 (define (asm-gen exp)
   ;;(stack-trace-exception)
   (clear-gen-symbol)
-
+  (printf "asm-gen=>\n")
+  (pretty-print exp)
   (let ((out-asm 
       (with-output-to-string
         ; (

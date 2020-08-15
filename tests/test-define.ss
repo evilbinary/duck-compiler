@@ -2,7 +2,7 @@
 (import (scheme) (test) (duck) )
 
 (add-test "test define"
-  ; [(define a 100) ""]
+  [(define a 100) ""]
   ; [(define square
   ;     (lambda (x)
   ;       (* x x)))

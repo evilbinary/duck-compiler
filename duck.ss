@@ -35,22 +35,23 @@
   exp
 )
 
+
 (define (ast-conversion exp)
-  (printf "exp ~a\n" exp)
- (match exp
+(printf "exp ~a\n" exp)
+(match exp
   [(define (,v ,e) ,e1)
     (ast-conversion `(define v (lambda (,e) ,e1)) )
   ]
   [(define ,v (lambda (,args ...) ,body ))
     (ast-conversion 
-     `(let ((,v  (lambda (,args ...) ,body ) )) ,v )
+    `(let ((,v  (lambda (,args ...) ,body ) )) ,v )
         )
   ]
   [(define ,v ,e)
     (printf "define ~a ~a\n" v e)
     ;;`(set! ,v ,(ast-conversion e) )
-     (ast-conversion 
-     `(let ((,v ,e )) ,v )
+    (ast-conversion 
+    `(let ((,v ,e )) ,v )
         )
     ]
   ; [(begin ,e1 ,e2) 
@@ -78,7 +79,7 @@
         `(let ((,e1 ,(ast-conversion e2) )) (void) ) ;;syntax erro
         `(let ((,e1 ,(ast-conversion e2) )) ,(ast-conversion `(begin ,@e3* ) ) )
         )
-       `(let ((,e1 ,(ast-conversion e2) ))
+      `(let ((,e1 ,(ast-conversion e2) ))
         ,(ast-conversion `(let ,e* ,@(ast-conversion e3* )  ) ) )
       )
   ]
@@ -138,7 +139,8 @@
     (printf "other exp->~a\n" exp)
     exp
   ]
-  ))
+  )
+)
 
 (define (alpha-conversion exp)
     (define (alpha-conv exp env)
@@ -430,7 +432,7 @@
       instruct-optimize
       assign-conversion
       restruct-block
-    )))
+    ) ))
 )
 
 )

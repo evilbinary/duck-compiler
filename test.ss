@@ -11,7 +11,8 @@
    add-test-print
    )
 
-  (import (scheme) (duck) (logger) (common) (trace) )
+  (import (scheme) (duck) (logger) (common) (trace)     (options)
+)
 
 
 (define all-tests (list))
@@ -66,7 +67,7 @@
                   (if (pair? e)
                       (set! result (cadr e))
                       )
-                  (set! ret (duck-compile-exp (car e) test-name))
+                  (set! ret (duck-compile-exp (car e) test-name ))
                   (printf "[test~a]:" i  )
                   (pretty-print  (car e ) )
                   ;;(pretty-print ret )
@@ -103,7 +104,7 @@
     (pretty-format 'local '(_ x))
     (pretty-format 'print-value '(_ x))
     (pretty-format 'null? '(_ x))
-    (pretty-format 'block '(_ name  0 ... ))
+    (pretty-format 'block '(_ name 0 ... ))
     (pretty-format 'program '(_ name 0 args 0 vars  ... ))
     (pretty-one-line-limit 100)
   (let ((total 0)

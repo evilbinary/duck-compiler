@@ -27,7 +27,6 @@
   (import 
     (scheme)
     (rename (scheme) (div div2) )
-
   )
 
 (define mapc for-each)
