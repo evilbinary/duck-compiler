@@ -221,45 +221,53 @@
       )
 )
 
-(define (stext)
-  (asm "extern _printf")
-  (asm "extern _exit")
-  (asm "extern _malloc")
-  (asm "")
-  (asm "section .text")
-  (asm "global _start")
+(define (stext arg)
+  (if (equal? arg 'start)
+    (begin 
+      (asm "extern _printf")
+      (asm "extern _exit")
+      (asm "extern _malloc")
+      (asm "")
+      (asm "section .text")
+      (asm "global _start")
 
-  (asm "%macro cproc 1
-    push ebx
-    mov ebx, esp        ; remember current esp
-    and esp, 0xFFFFFFF0 ; align to next 16 byte boundary (could be zero offset!)
-    sub esp, 12         ; skip ahead 12 so we can store original esp
-    push ebx            ; store esp (16 bytes aligned again)
-    sub esp, %1         ; pad for arguments (make conditional?)
-%endmacro
+      (asm "%macro cproc 1
+        push ebx
+        mov ebx, esp        ; remember current esp
+        and esp, 0xFFFFFFF0 ; align to next 16 byte boundary (could be zero offset!)
+        sub esp, 12         ; skip ahead 12 so we can store original esp
+        push ebx            ; store esp (16 bytes aligned again)
+        sub esp, %1         ; pad for arguments (make conditional?)
+    %endmacro
 
-; arg must match most recent call to clib_prolog
-%macro ceproc 1
-    add esp, %1         ; remove arg padding
-    pop ebx             ; get original esp
-    mov esp, ebx        ; restore
-    pop ebx
-%endmacro
-")
+    ; arg must match most recent call to clib_prolog
+    %macro ceproc 1
+        add esp, %1         ; remove arg padding
+        pop ebx             ; get original esp
+        mov esp, ebx        ; restore
+        pop ebx
+    %endmacro
+    ")
 
-  (asm "_start:")
-  (asm "push ebp")
-  (asm "mov	ebp, esp")
-  (asm "and esp,0xFFFFFFF0")
-  (asm "sub esp,12")
+      (asm "_start:")
+      (asm "push ebp")
+      (asm "mov	ebp, esp")
+      (asm "and esp,0xFFFFFFF0")
+      (asm "sub esp,12")
 
-  ; (asm "mov eax ,dword [ebp+4 ]")
-  ; (asm "mov eax ,dword [ebp+0 ]")
-  ; (asm "pop eax  ;;argc to eax")
-  ; (asm "pop ebx  ;;argv to ebx")
-  ; (asm "mov ebp,esp")
-  ; (asm "and esp,0xFFFFFFF0")
-  ; (asm "sub esp,16")
+      ; (asm "mov eax ,dword [ebp+4 ]")
+      ; (asm "mov eax ,dword [ebp+0 ]")
+      ; (asm "pop eax  ;;argc to eax")
+      ; (asm "pop ebx  ;;argv to ebx")
+      ; (asm "mov ebp,esp")
+      ; (asm "and esp,0xFFFFFFF0")
+      ; (asm "sub esp,16")
+    )
+    (begin 
+      (sexit 0)
+    )
+  )
+  
 )
 
 (define (sexit code)
@@ -268,9 +276,13 @@
   (asm "pop ebp")
   (asm "ret")
 )
-(define (sdata)
-    (asm "section .data")
-    (gen-define)
+
+(define (sdata arg)
+    (if (equal? 'start arg)
+      (begin 
+        (asm "section .data")
+        (gen-define)
+    ))
 )
 
 (define (local index)

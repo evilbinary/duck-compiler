@@ -467,9 +467,9 @@
   `(block all 
     ;;main block
     (block main
-      (stext)
+      (stext start)
       ,@block-main
-      (sexit 0)
+      (stext end)
     )
     ;;defs block
     ,block-defs
@@ -477,8 +477,9 @@
     ,@(if need-primitive block-libs `() )
     ;;data block
     (block data
-      (sdata)
+      (sdata start)
       ,@block-data
+      (sdata end)
     )
   )
 )   
@@ -507,19 +508,15 @@
           (ret))
           )
        ]
-      [(sdata)
-        (sdata)
+      [(sdata ,arg)
+        (sdata arg)
       ]
       [(data ,a ,b)
         (data a b)
       ]
-      [(stext)
-        (stext)
+      [(stext ,arg)
+        (stext arg)
       ]
-      [(sexit ,code)
-        (sexit code)
-      ]
-
       [,atom 
         (guard (null? atom))
         (note "null")
