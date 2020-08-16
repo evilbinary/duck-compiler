@@ -78,7 +78,13 @@
 )
 
 (define (asm-compile-exp exp name)
-  (let ((asm (format "`which  nasm` ~a.s -f macho && ld -arch i386 -e _start -no_pie -lc ~a.o -o ~a" name name name)))
+  (let* ((exe-fmt
+           (case (machine-type)
+             ((arm32le) "")
+             ((a6nt i3nt ta6nt ti3nt)  "-f win32")
+             ((a6osx i3osx ta6osx ti3osx)  "-f macho")
+             ((a6le i3le ta6le ti3le) "-f win")))
+        (asm (format "`which  nasm` ~a.s ~a && ld -arch i386 -e _start -no_pie -lc ~a.o -o ~a" exe-fmt name name name)))
       ;;(printf "~a\n" asm)
       (system asm)
   )
