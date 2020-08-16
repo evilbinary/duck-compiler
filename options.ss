@@ -5,12 +5,29 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (library (options)
   (export 
-    need-primitive
+    option-set
+    option-get
+    make-options
   )
 
-(import (scheme))
+  (import (scheme))
 
-(define need-primitive #t)
+  (define (make-options)
+    (make-hashtable equal-hash equal?)
+  )
+  (define duck-options (make-options))
 
+  (define (option-set var val)
+    (hashtable-set! duck-options var val)
+  )
+  
+  (define option-get
+    (case-lambda 
+      [(var val)
+        (hashtable-ref duck-options var val)
+      ]
+      [(var)
+        (option-get var '())
+      ]))
 
 )
