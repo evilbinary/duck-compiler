@@ -78,7 +78,7 @@
 )
 
 (define (asm-compile-exp exp name)
-  (let ((asm (format "`which  nasm` ~a.s -f macho && ld -macosx_version_min 10.6 -arch i386 -e _start -no_pie -lc ~a.o -o ~a" name name name)))
+  (let ((asm (format "`which  nasm` ~a.s -f macho && ld -arch i386 -e _start -no_pie -lc ~a.o -o ~a" name name name)))
       ;;(printf "~a\n" asm)
       (system asm)
   )
