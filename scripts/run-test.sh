@@ -1,3 +1,4 @@
+#!/bin/bash
 export CHEZSCHEMELIBDIRS=.:..
 
 trap 'onCtrlC' INT
