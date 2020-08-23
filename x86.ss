@@ -96,7 +96,7 @@
         (case (machine-type)
           ((arm32le) "")
           ((a6nt i3nt ta6nt ti3nt)  (format "`which  nasm` ~a.s -f win32 && ld -arch i386 -e _start -no_pie -lc ~a.o -o ~a"  name  name name))
-          ((a6osx i3osx ta6osx ti3osx)   (format "`which  nasm` ~a.s -f macho && ld -arch i386 -e _start -no_pie -lc ~a.o -o ~a"  name  name name))
+          ((a6osx i3osx ta6osx ti3osx)   (format "`which  nasm` ~a.s -f macho && ld -macosx_version_min 10.6  -arch i386  -e _start -no_pie -lc ~a.o -o ~a"  name  name name))
           ((a6le i3le ta6le ti3le) (format "`which  nasm` ~a.s -f elf32 && ld -dynamic-linker /lib/i386-linux-gnu/ld-linux.so.2 -lc  -m elf_i386 -e _start  ~a.o -o ~a"  name  name name))))
       )
       (printf "~a\n" asm)

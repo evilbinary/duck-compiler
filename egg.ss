@@ -145,11 +145,11 @@
               ,(find-vars body '()) ;;vars
               ,@(flatten body))
 
-              ,@(flatten e)
-            ; (program main
-            ;   () ;;args
-            ;   (,proc ,@(find-vars e '())) ;;vars
-            ;   ,@(flatten e))
+              ; ,@(flatten e)
+            (program main
+              () ;;args
+              (,proc ,@(find-vars e '())) ;;vars
+              ,@(flatten e))
           )
       ]
       [(let ((,var ,e1)) ,e2)
@@ -372,14 +372,14 @@
   (define (assign cur env)
     (match cur
       [(program ,name ,args ,vars ,c* ...)
-          (set! genv (ext  name (length genv) genv))
+          (set! genv (ext name (length genv) genv))
           (let ((lenv '()))
             (mapc (lambda (x)
-                (set! lenv (ext  x (length lenv) lenv))
-                ) args)
+                    (set! lenv (ext  x (length lenv) lenv))) 
+                  args)
             (mapc (lambda (x)
-                (set! lenv (ext  x (length lenv) lenv))
-                ) vars)
+                    (set! lenv (ext  x (length lenv) lenv)))
+                  vars)
             (printf "prgram name=~a args vars env =>~a\n" name lenv)
           `(program ,name ,@(map (lambda (i) 
               (printf "   env=> ~a\n" lenv)
@@ -399,10 +399,11 @@
         `(set ,(assign a env) ,(assign b env))
       ]
       [(,app ,args ...)
+        (printf "assign=~a ~a\n" app args)
         `(,(assign app env)
-          ,@(map (lambda (x) 
-                (assign x env)
-             ) args ))
+              ,@(map (lambda (x) 
+                        (assign x env))
+                     args ))
       ]
       [,var 
         (guard (symbol? var))
