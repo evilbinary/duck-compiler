@@ -3,6 +3,14 @@
 鸭子QQ群号:239401374
 
 ## 使用
+linux依赖: 
+```
+sudo apt-get install  nasm
+sudo dpkg --add-architecture i386
+sudo apt-get install gcc-multilib libc6:i386 libncurses5:i386 libstdc++6:i386
+```
+
+osx 依赖: `brew install nasm`
 
 运行: `make build`
 

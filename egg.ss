@@ -100,7 +100,7 @@
   )
 )
 
-;;anf let to flatten program
+;;anf let to program
 (define (flatten-conversion exp)
   (define (find-vars cur vars)
     (match cur
@@ -139,19 +139,22 @@
     (match exp
       [(let ((,proc (lambda (,args ...) ,body ))) ,e)
         (printf "proc==> ~a args=~a body=~a  e=~a\n" proc args  body  e)
-        `( (program ,proc
+        `(
+           (program ,proc
               ,args ;;args
               ,(find-vars body '()) ;;vars
               ,@(flatten body))
-            (program main
-              () ;;args
-              (,proc ,@(find-vars e '())) ;;vars
-              ,@(flatten e))
-          ) 
+
+              ,@(flatten e)
+            ; (program main
+            ;   () ;;args
+            ;   (,proc ,@(find-vars e '())) ;;vars
+            ;   ,@(flatten e))
+          )
       ]
       [(let ((,var ,e1)) ,e2)
         (printf "let ==> ~a ~a ~a\n" var e1 e2)
-        `((let ((,var ,e1)) ,e2))
+        `( (set ,var ,e1) ,@(flatten e2))
       ]
       [(if ,a ,b ,c)
        `((if ,a ,b ,c))
@@ -447,7 +450,7 @@
         `(program all ,@(mapc collect bodys) )
       ]
       [(program ,name ,bodys ... )
-        (printf "programe-> name=~a body=~a\n" name bodys)
+        (printf "program-> name=~a body=~a\n" name bodys)
         (if (equal? 'main name)
           (set! block-main (append block-main  bodys ))
           (set! block-defs (append block-defs `(block ,name ,@bodys )))
@@ -455,7 +458,7 @@
         `(program ,name ,@bodys )
       ]
       [($asm ,bodys ...)
-        (mapc collect `(program main ,@bodys))
+        (mapc collect `(,@bodys))
       ]
       ;;default in main
       [,exp  
@@ -621,6 +624,9 @@
       [(mref ,a ,b ,x ...)
         (mref a b x)
       ]
+      [(mset ,a ,b ,x ...)
+        (mset a b x)
+      ]
 
       ;;primitive start
       [(emit-print-value ,args ...)
@@ -654,7 +660,14 @@
         (emit-prim app (map  (lambda (e)
             (emit-p e env)) args ))        
       ]
-
+      [(fcall ,app ,args ...)
+        ; (arg (emit-p args env))
+        ;(printf "call app= ~a ~a\n" app args)
+        ;;call name
+        (apply fcall app 
+          (map  (lambda (e)
+            (emit-p e env)) args ))
+      ]
       ;;direct call
       [(call ,app ,args ...)
         (guard (pair? app))

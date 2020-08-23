@@ -2,16 +2,24 @@
 (import (scheme) (test) (duck) )
 
 (add-test "test define"
-  [(define a 100) ""]
-  ; [(define square
-  ;     (lambda (x)
-  ;       (* x x)))
-  ;   ""
-  ; ]
-  ; [(define (square x)
-  ;       (* x x))
-  ;   ""
-  ; ]
+;   [(define a 100) ""]
+;   [(define square
+;       (lambda (x)
+;         (* x x)))
+;     ""
+;   ]
+;   [(define (square x b)
+;         (* x x))
+;     ""
+;   ]
+
+[(begin
+   (define a 100)
+   (define (test x) x)
+   )
+
+    ""
+  ]
 
   ; [(begin
   ;     (define hello (lambda (n)
@@ -35,28 +43,28 @@
 
   ;;no pass
 
-  [(begin 
-    (define fib (lambda (n)
-       ;;(printc "fib[%d] \\n" n)
-       (if (= n 0)
-         (begin 
-            (printc "1 ")
-            0
-            )
-         (if (= n 1)
-            (begin 
-            (printc "2 ")
-            1
-            )
-            (begin 
-                (printc "f2[%d] " n)
-                (+ (fib (- n 1)) (fib (- n 2)))
-            )
-         )
-         )
-         ))
-    (printc "test=%d" (fib 10))
-    ) '()]
+;   [(begin 
+;     (define fib (lambda (n)
+;        ;;(printc "fib[%d] \\n" n)
+;        (if (= n 0)
+;          (begin 
+;             (printc "1 ")
+;             0
+;             )
+;          (if (= n 1)
+;             (begin 
+;             (printc "2 ")
+;             1
+;             )
+;             (begin 
+;                 (printc "f2[%d] " n)
+;                 (+ (fib (- n 1)) (fib (- n 2)))
+;             )
+;          )
+;          )
+;          ))
+;     (printc "test=%d" (fib 10))
+;     ) '()]
 
 
   

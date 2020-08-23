@@ -39,8 +39,8 @@
 (define (ast-conversion exp)
 (printf "exp ~a\n" exp)
 (match exp
-  [(define (,v ,e) ,e1)
-    (ast-conversion `(define v (lambda (,e) ,e1)) )
+  [(define (,v ,e ,e* ...) ,e1)
+    (ast-conversion `(define ,v (lambda (,e ,@e*) ,e1)) )
   ]
   [(define ,v (lambda (,args ...) ,body ))
     (ast-conversion 
@@ -217,7 +217,7 @@
       (k `(lambda ,params ,(anf-term body)))
     ]
     [($asm ,args ...)
-      `($asm ,@args)
+      (k `($asm ,@args))
     ]
     [(if ,e1 ,e2 ,e3)
       (printf "if->~a ~a ~a k=~a\n" e1 e2 e3 k)

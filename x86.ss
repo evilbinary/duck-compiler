@@ -6,7 +6,7 @@
 (library (x86)
   (export 
     reg0 reg1 reg2 reg3 reg4 reg5 reg6 reg7 regs regs-map
-
+    r0h r0l r1h r1l
     asm set mref mset note
     add label sar sal mul sub div
     shl shr ret
@@ -39,8 +39,15 @@
 (define reg6 'ebp)
 (define reg7 'esp)
 
-(define regs (list reg0  reg1 reg2 reg3 reg4 reg5 reg6 reg7))
-(define regs-map (list 'reg0 reg0  'reg1 reg1 'reg2 reg2 'reg3 reg3 'reg4 reg4 'reg5 reg5 'reg6 reg6 'reg7 reg7))
+(define r0 'ax)
+(define r0l 'al)
+(define r0h 'ah)
+
+(define r1l 'bl)
+(define r1h 'bh)
+
+(define regs (list reg0  reg1 reg2 reg3 reg4 reg5 reg6 reg7 r0 r0l r0h r1l r1h))
+(define regs-map (list 'reg0 reg0  'reg1 reg1 'reg2 reg2 'reg3 reg3 'reg4 reg4 'reg5 reg5 'reg6 reg6 'reg7 reg7  'r0 r0 'r0l r0l 'r0h r0h ))
 
 
 (define symbol-prefix
@@ -134,7 +141,7 @@
               (begin
                 (cond
                   [(number? (car arg))
-                    (note "number arg=~a" (car arg))
+                    (note "number arg=~a 0x~x" (car arg) (car arg))
                     (asm "mov dword [esp+ ~a], ~a" (* i 4) (car arg))
                   ]
                   [(list? (car arg)) 
@@ -169,7 +176,7 @@
               (begin
                 (cond
                   [(number? (car arg))
-                    (note "number arg=~a" (car arg))
+                    (note "number arg=~a 0x~x" (car arg) (car arg))
                     (asm "mov ~a,~a" reg0 (car arg))
                     (sar reg0 type-shift)
                     (asm "mov dword [esp+ ~a], ~a" (* i 4) reg0 )
@@ -373,16 +380,21 @@
 (define set
   (case-lambda 
     [(a b) 
-      (note "set ~a ~a (list? a)=~a" a b (list? a))
-      (unless (equal? a b)
-        (begin 
-          (if (and (list? a) (or (list? b) (symbol? b)))
-            (begin 
-              (asm "mov ~a,~a" reg0 (operands-rep b) )
-              (asm "mov ~a,~a" (operands-rep a) reg0 ))
-            (asm "mov ~a~a,~a" (if (list? a) "dword " "") (operands-rep a) (operands-rep b) ))
+      (note "set ~a ~a (list? a)=~a number b?=~a" a b (list? a) (number? b))
+      (unless (equal? a b) 
+          (cond
+            [(and (symbol? a) (number? b))
+              (asm "mov ~a,~a" (operands-rep a) b)
+            ]
+            [(and (list? a) (or (list? b) (symbol? b))) 
+                (asm "mov ~a,~a" reg0 (operands-rep b) )
+                (asm "mov ~a,~a" (operands-rep a) reg0 )
+              ]
+            [else 
+              (asm "mov ~a~a,~a" (if (list? a) "dword " "") (operands-rep a) (operands-rep b) )
+            ]
+
           )
-          
         )]
     [(a b c)
     (unless (equal? a b)
