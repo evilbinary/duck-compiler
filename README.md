@@ -55,9 +55,9 @@ osx 依赖: `brew install nasm`
 
 ## 计划
 
-1. add duck compiler
-2. add lib support vector and so on
-3. add duck language support
-4. add x86-64 arm arm64 wasm
-5. add duck os
-6. add duck robot
+1. add duck compiler [done]
+2. add lib support vector and so on [doing]
+3. add duck language support [doing]
+4. add x86[done] x86-64 llvm[done] arm arm64 wasm
+5. add duck os [doing]
+6. add duck robot [doing]
