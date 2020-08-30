@@ -16,6 +16,7 @@
   get-sym
   clear-sym
   asm-data-add
+  asm-data-get
   asm-data-clear
   get-asm-data-define
   mapc
@@ -46,6 +47,10 @@
 
 (define (asm-data-add key val)
   (hashtable-set! asm-data-define (symbol->asm-id key) val)
+)
+
+(define (asm-data-get key val)
+  (hashtable-ref asm-data-define key val)
 )
 
 (define (asm-data-clear)
@@ -101,6 +106,7 @@
     (set! str (string-replace #\\ #\_ str))
     (set! str (string-replace #\, ".comma"  str))
     (set! str (string-replace #\# ".b" str))
+    (set! str (string-replace #\! ".ex" str))
     (set! str (string-replace #\newline ".newline" str))
     ;(printf ";symbol->asm-id:~a==>~a\n" s str)
     ; (let ((r (symbol->asm-id str)))

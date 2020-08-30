@@ -450,7 +450,7 @@
   (asm "div ~a"  reg2)
   )
 
-(define (proc l)
+(define (proc l args)
   (note "\n")
   (note "proc ~a" l)
   (label l)

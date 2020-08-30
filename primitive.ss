@@ -59,8 +59,7 @@
 (define (emit-print-const-value tag  str lend)
   (let ((l1 (gen-sym 'lconst))
         (l2 (gen-sym 'lconst))
-        (l3 (gen-sym 'lconst))
-        (l4 (gen-sym 'lconst)))
+        (l3 (gen-sym 'lconst)) )
         (set reg0 reg1)
         (land reg0 type-mask)
         (cmp-jmp reg0 const-tag l1 l2)
@@ -68,10 +67,10 @@
         (set reg0 reg1)
         (land reg0 const-mask)
         (sar reg0 type-shift)
-        (cmp-jmp reg0 tag l3 l4)
+        (cmp-jmp reg0 tag l3 l2)
         (label l3) ;; is tag
         (emit-printf str reg0)
-        (label l4)
+        (jmp l2)
         (label l2)
       )
 )
@@ -244,7 +243,7 @@
    [(_ (prim-name arg* ...) body body* ...)
     (define prim-name
         (lambda () 
-            `(block prim-name   body body* ... ) ;;(local arg* ... )
+            `(block (label prim-name arg* ... )  body body* ... ) ;;(local arg* ... )
         )
       )
   ]))
@@ -295,6 +294,7 @@
     (set reg1 (local 0))
     (set reg0 reg1)
 
+    (jmp print-list-l1)
     (label print-list-l1)
     
     (note "is pair?")
@@ -336,12 +336,13 @@
     (label print-list-l6)
     (emit-printf " . ")
     (emit-print-value  reg1)
-
+    
+    (jmp print-list-l8)
     (label print-list-l8)
     ;;loop next
     (set reg0 reg1)
     (jmp print-list-l1)
-
+    
     (label print-list-lend)
     (restore reg2)
     (restore reg1)
@@ -408,6 +409,7 @@
       (note "print null")
       (emit-print-const-value ,null-tag "()" print-value-lend)
 
+      (jmp print-value-lend)
       (label print-value-lend)
 
       (restore reg2)

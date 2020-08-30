@@ -26,6 +26,26 @@
     (common)
     (match)
     (trace)
-    (x86)
+    (options)
+    (rename (scheme) (div div2) )
+    ; (x86)
+    ; (wasm)
     )
+
+(define-syntax import-arch
+  (lambda (x)
+      (syntax-case x ()
+        ((_ k)
+          (datum->syntax #'k `(import 
+          ,(case (option-get 'arch 'x86)
+            ['x86 '(x86)]
+            ['wasm '(wasm)]
+            ['llvm '(llvm)]
+            [else (error 'platform "not support ")]
+            ))
+          ))))
+  )
+  
+  (import-arch options)
+  
 )

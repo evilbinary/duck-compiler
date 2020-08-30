@@ -497,10 +497,23 @@
   (define (emit-p cur env)
     (note "emit-code ~a" cur)
     (match cur
+    [(block (label ,name ,args ...) ,blocks ...)
+        (proc name args)
+        (let loop [(i blocks)]
+            (if (pair? i)
+              (begin 
+                ; (note "====> ~a" (car i))
+                (emit-code (car i) env)
+                (loop (cdr i))
+              )
+            )
+        )
+       ]
       [(block ,name ,blocks ...)
         (let ((is-main (memq  name '(main all data ))))
         (if (not is-main)
-          (proc name))
+          (proc name '())
+          )
         (let loop [(i blocks)]
             (if (pair? i)
               (begin 
@@ -547,8 +560,8 @@
       [(label ,var)
         (label var)
       ]
-      [(proc ,var)
-        (proc var)
+      [(proc ,var ,args ...)
+        (proc var args)
       ]
       [(local ,index)
         (local index)
@@ -737,7 +750,7 @@
   )
 
   (define (asm-gen-file exp name)
-    (let ([o (open-file-output-port (format "~a.s" name) (file-options replace)
+    (let ([o (open-file-output-port (format "~a~a" name (option-get 'obj.name ".s") ) (file-options replace)
                 (buffer-mode block) (current-transcoder))])
           (display (asm-gen exp) o)  
       (close-output-port o))

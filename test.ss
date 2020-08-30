@@ -39,8 +39,37 @@
           out)
     ))
 
+(define (get-arch-cmd test-name)
+  (case (option-get 'arch 'x86)
+      ['x86 
+        (format "./~a" test-name)]
+      ['wasm 
+        (format "wasm-interp ./~a.wasm" test-name)]
+      ['llvm 
+        (format "./~a" test-name)]
+      ['llvm-bc 
+        (format "./~a.bc" test-name)]
+      [else
+        (format "./~a" test-name)]
+    )
+)
+
+  (define (get-arch-obj-name)
+    (case (option-get 'arch 'x86)
+        ['x86 
+          ".s"]
+        ['wasm 
+          ".wasm"]
+        ['llvm 
+          ".ll"]
+        [else
+          ".s"]
+      )
+  )
+
 (define (test case)
     ;;(pretty-one-line-limit 1)
+    (option-set 'obj.name (get-arch-obj-name))
     (let ((name (car case))
           (exps (cadr case))
           (cmp (if (procedure? (caddr case)) (caddr case) equal? ))
@@ -67,13 +96,14 @@
                   (if (pair? e)
                       (set! result (cadr e))
                       )
-                  (set! ret (duck-compile-exp (car e) test-name ))
+                  (set! ret (duck-compile-exp (car e) test-name) )
                   (printf "[test~a]:" i  )
                   (pretty-print  (car e ) )
                   ;;(pretty-print ret )
                   (if (= ret 0)
                     (begin
-                      (set! out (run-shell (format "./~a" test-name)))
+                      ; (printf "cmd=>~a\n" (get-arch-cmd test-name))
+                      (set! out (run-shell (get-arch-cmd test-name)))
                       (if (cmp out result)
                         (begin 
                           (set! passed (+ passed 1))
