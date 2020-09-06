@@ -59,6 +59,9 @@
       (note "integer  ~a" v )
       (type-rep v)
     ]
+    [(lambda () ,e)
+    `(lambda () ,(represent-conversion e))
+    ]
     [(if ,e1 ,e2 ,e3)
       `(if ,(represent-conversion e1) ,(represent-conversion e2) ,(represent-conversion e3))
     ]
@@ -445,6 +448,7 @@
           ,(assign-conversion `,(print-list))
            ))
        )
+  
   (define (collect cur)
     (match cur
       [(program all ,bodys ...)
@@ -453,10 +457,11 @@
       [(program ,name ,bodys ... )
         (printf "program-> name=~a body=~a\n" name bodys)
         (if (equal? 'main name)
-          (set! block-main (append block-main  bodys ))
-          (set! block-defs (append block-defs `(block ,name ,@bodys )))
+          (set! block-main (append block-main  (list (mapc collect bodys) )))
+          (set! block-defs (append block-defs (list `(block ,name ,@(mapc collect bodys) ))))
         )
-        `(program ,name ,@bodys )
+        '()
+        ; `(block ,name ,@(mapc collect bodys ))
       ]
       [($asm ,bodys ...)
         (mapc collect `(,@bodys))
@@ -478,7 +483,7 @@
       (stext end)
     )
     ;;defs block
-    ,block-defs
+    ,@block-defs
     ;;
     ,@(if (option-get 'need-primitive) block-libs `() )
     ;;data block
