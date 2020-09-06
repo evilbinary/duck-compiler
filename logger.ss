@@ -9,22 +9,28 @@
   log-info
   log-debug
   log-error
+  log-set-level
   )
   (import (scheme))
+  (define level 'info)
+  (define (log-set-level l)
+    (set! level l)
+  )
+  (define (log-level l s . args)
+    (if (not (null? level))
+      (begin 
+        (apply printf (format "[~a]~a" l s) args)
+        (newline ))))
 
-  (define (log-level level s . args)
-    (apply printf s args)
-    (newline ))
-
-   (define (log-info s  args)
-    (log-level 'info s args)
+   (define (log-info . args)
+    (apply log-level 'info args)
     )
 
-    (define (log-debug s  args)
-    (log-level 'info s args)
+    (define (log-debug . args)
+      (apply log-level 'debug args)
     )
 
-    (define (log-error s  args)
-        (log-level 'info s args)
+    (define (log-error . args)
+       (apply log-level 'error args)
     )
 )

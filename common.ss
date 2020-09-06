@@ -21,8 +21,7 @@
   get-asm-data-define
   mapc
   asm
-  note
-  
+  note  
    )
 
   (import 

@@ -14,6 +14,7 @@
         (egg)
         (trace)
         (common)
+        (logger)
         )
 
 (define (print-exp exp)
@@ -37,7 +38,7 @@
 
 
 (define (ast-conversion exp)
-(printf "exp ~a\n" exp)
+(log-debug "exp ~a(" exp)
 (match exp
   [(define (,v ,e* ...) ,e1)
     (ast-conversion `(define ,v (lambda (,@e*) ,e1)) )
@@ -48,7 +49,7 @@
         )
   ]
   [(define ,v ,e)
-    (printf "define ~a ~a\n" v e)
+    (log-debug "define ~a ~a(" v e)
     ;;`(set! ,v ,(ast-conversion e) )
     (ast-conversion 
     `(let ((,v ,e )) ,v )
@@ -62,7 +63,7 @@
   ;   `(begin ,e1)
   ; ]
   [(begin . ,e1 )
-    (printf "begin ~a len=~a\n" e1 (length e1))
+    (log-debug "begin ~a len=~a(" e1 (length e1))
     (if (null? e1)
     '()
     (if (> (length  e1) 1 )
@@ -73,7 +74,7 @@
         ))
   ]
   [(let ((,e1 ,e2) ,e* ...) ,e3* ...)
-    (printf "let->~a , ~a\n" e1 e3* )
+    (log-debug "let->~a , ~a(" e1 e3* )
     (if (null? e*)
       (if (null? e3*)
         `(let ((,e1 ,(ast-conversion e2) )) (void) ) ;;syntax erro
@@ -90,43 +91,43 @@
     `(let ,e1 )
   ]
   [(let ,e ([,e1* ,e2*] ...) ,e3* ...)
-    (printf ">>>>>>>>>>>>>>>>let ===~a ~a\n" e1* e2*)
+    (log-debug ">>>>>>>>>>>>>>>>let ===~a ~a(" e1* e2*)
     (ast-conversion `(let ((,e (lambda ,e1*  ,@e3* ) ))
         (,e ,@e2*)
       ))
   ]
   [(lambda (,e1 ...) ,e2 ...)
-    (printf "lambda====>~a\n" e2)
+    (log-debug "lambda====>~a(" e2)
     `(lambda ,e1 ,(ast-conversion `(begin ,@e2 ) ) )
   ]
   [(if ,e1 ,e2 ,e3)
-    (printf "if====>\n")
+    (log-debug "if====>(")
     `(if ,(ast-conversion e1) ,(ast-conversion e2) ,(ast-conversion e3))
   ]
   [(if ,e1 ,e2)
-    (printf "if1====>\n")
+    (log-debug "if1====>(")
     `(if ,(ast-conversion e1) ,(ast-conversion e2) (void) )
   ]
   [(if ,e1 )
-    (printf "if2====>\n")
+    (log-debug "if2====>(")
     `(if ,(ast-conversion e1) (void) (void) )
   ]
   ; [((,e)) `(,e)]
   [(()) '()]
   [(quote ,e)
-    (printf "quote ~a\n" exp)
+    (log-debug "quote ~a(" exp)
     (cond
       [(pair? e) `(cons ,(ast-conversion `(quote  ,(car e))) ,(ast-conversion `(quote ,(cdr e))) ) ]
       [else `(quote ,e) ]
     )
   ]
   [(,app ,arg)
-    (printf "app ~a\n" exp)
+    (log-debug "app ~a(" exp)
     `(,app ,(ast-conversion arg))
   ]
   [(,binop ,e1 ,e2 ...)
     (guard (memq binop '(+ - * /) ))
-    (printf "prim ~a ee=>~a\n" binop e2)
+    (log-debug "prim ~a ee=>~a(" binop e2)
     (if (> (length e2) 1)
     `(,binop ,(ast-conversion e1) ,(ast-conversion `(,binop ,@e2 )) )
     `(,binop ,(ast-conversion e1) ,(ast-conversion (car e2) ) )
@@ -136,7 +137,7 @@
     `(,app ,@(map ast-conversion e1))
   ]
   [,exp 
-    (printf "other exp->~a\n" exp)
+    (log-debug "other exp->~a(" exp)
     exp
   ]
   )
@@ -176,15 +177,15 @@
 (define (anf-term exp) (anf exp id))
 
 (define (anf-name exp k)
-  (printf "=======>anf-name ~a type=>\n" exp )
+  (log-debug "=======>anf-name ~a type=>(" exp )
   (anf exp (lambda (n)
     (if (type? n)
       (begin 
-        ; (printf "=======>anf-name type->ret=~a  ~a\n" (k n)   n)
+        ; (log-debug "=======>anf-name type->ret=~a  ~a(" (k n)   n)
         (k n)
       )
       (let ([t (gen-sym 'var)])
-        (printf "=======>gen->~a\n" t)
+        (log-debug "=======>gen->~a(" t)
         `(let ([,t ,n]) ,(k t) )
       )
     )
@@ -192,23 +193,23 @@
 )
 
 (define (anf-name* exp* k)
-  (printf "=======>anf-name* ~a\n" exp* )
+  (log-debug "=======>anf-name* ~a(" exp* )
   (if (null? exp*)
     (begin 
-      (printf "----------->exps end exp*=~a\n" exp*)
+      (log-debug "----------->exps end exp*=~a(" exp*)
       (k exp*)
     )
      (anf-name (car exp*) 
       (lambda (t)
-        (printf "=========>(car exp*)=~a ~a\n" (car exp*) t)
+        (log-debug "=========>(car exp*)=~a ~a(" (car exp*) t)
         (anf-name* (cdr exp*) (lambda (t*) 
-        (printf "=======>anf-name3 ===>t*=~a\n" t*)
+        (log-debug "=======>anf-name3 ===>t*=~a(" t*)
         (k `(,t . ,t*)))) ))
   )
 )
 
 (define (anf exp k)
-  (printf "anf exp ~a\n" exp)
+  (log-debug "anf exp ~a(" exp)
   (match exp
     [,v ;;atom
       (guard (type? v))
@@ -220,12 +221,12 @@
       (k `($asm ,@args))
     ]
     [(if ,e1 ,e2 ,e3)
-      (printf "if->~a ~a ~a k=~a\n" e1 e2 e3 k)
+      (log-debug "if->~a ~a ~a k=~a(" e1 e2 e3 k)
       ; `(if ,(anf e1 id) ,(anf e2 k) ,(anf e3 k) )
       (k `(if ,(anf e1 id) ,(anf e2 id) ,(anf e3 id)) )
     ]
     [(let ((,v ,exp1) ) ,exp3)
-      (printf "let->~a ~a ~a\n" v exp1 exp3)
+      (log-debug "let->~a ~a ~a(" v exp1 exp3)
       (anf exp1 
         (lambda (aexp1)
           `(let ([,v ,aexp1]  )
@@ -237,24 +238,24 @@
     [(()) '()]
     [(void) (k `(void) ) ]
     [(quote ,e)
-      (printf "quote-> ~a ~a\n" e `(quote ,e ))
+      (log-debug "quote-> ~a ~a(" e `(quote ,e ))
       ; `(quote ,(anf e k) )
       (k `(quote ,e))
     ]
     [(,fn . ,e*)
-      (printf "fn->~a arg->~a\n" fn e*)
+      (log-debug "fn->~a arg->~a(" fn e*)
       (anf-name fn (lambda (t) 
-        (printf "=======>anf-name2 ~a\n" t)
+        (log-debug "=======>anf-name2 ~a(" t)
         (let ((ret (anf-name* e* (lambda (t*)
               (k `(,t . ,t*)))) ))
-          (printf "=======>anf-name2 ret ~a\n" ret)
+          (log-debug "=======>anf-name2 ret ~a(" ret)
           ret
         )
         
         ))
       ]
     [,?
-    (printf "?->~a\n" (k ?) )
+    (log-debug "?->~a(" (k ?) )
     (k ?)]
   )
 )
@@ -264,7 +265,7 @@
 )
 
 (define (mark-tail exp fn)
-  (printf "mark-tail->~a\n" exp)
+  (log-debug "mark-tail->~a(" exp)
   (match exp
     [(lambda ,e1 ,e2)
       `(lambda ,e1 ,(mark-tail e2 fn) )
@@ -282,14 +283,14 @@
       )
     ]
     [,exp 
-      (printf "exp->~a\n" exp)
+      (log-debug "exp->~a(" exp)
       exp]
   )
 )
 
 (define (tail-convert e)
   (define (T-ae ae)
-    (printf "tail ~a\n" ae)
+    (log-debug "tail ~a(" ae)
     (match ae
       [,x
         (guard (type? x))
@@ -299,7 +300,7 @@
        `(lambda (,k ,x) ,(T-e e0 k))]
       [else ae]))
   (define (T-e e cae)
-  (printf "tail T-e ~a\n" e)
+  (log-debug "tail T-e ~a(" e)
     (match e
       [,x
         (guard (symbol? x))
@@ -325,10 +326,10 @@
        ))
   (T-e e `() )
 
-    ; (printf ">>>>>tail convert== ~a\n" e)
+    ; (log-debug ">>>>>tail convert== ~a(" e)
     ; (match e
     ;   [(let ([,e0 (,e1 ,app)]) ,e2)
-    ;     (printf ">>>>>tail convert let2 = (~a ~a)\n" e0 e1 )
+    ;     (log-debug ">>>>>tail convert let2 = (~a ~a)(" e0 e1 )
 
     ;     (let ((k (gen-sym 'k)))
     ;     `(let ([,k (lambda (,e0) ,(tail-convert e2) ) ])
@@ -336,7 +337,7 @@
     ;       ))
     ;   ]
     ;   [(let ([,e0 ,e1]) ,e2)
-    ;   (printf ">>>>>tail convert let = (~a ~a)\n" e0 e1 )
+    ;   (log-debug ">>>>>tail convert let = (~a ~a)(" e0 e1 )
     ;   ;  (if (equal? (car e1) '( ))
     ;   ;   (let ((k (gen-sym 'k)))
     ;   ;   `(let ([,k (lambda (,e0) ,(tail-convert e2) ) ])
@@ -362,11 +363,11 @@
 (define (tail exp)
   (match exp
     [(let ((,v ,exp1)) ,exp2)
-        ;;(printf "==>tail ~a ,~a\n" v exp1)
+        ;;(log-debug "==>tail ~a ,~a(" v exp1)
         (if (and (pair? exp1) (equal? (car exp1) 'lambda))
              ;;mark tail
              (begin
-             (printf "==>mark tail ~a\n" (mark-tail exp1 v))
+             (log-debug "==>mark tail ~a(" (mark-tail exp1 v))
              `(let ((,v ,(mark-tail exp1 v) )) ,(tail exp2) )
             ;  (tail-convert `(let ((,v ,(mark-tail exp1 v) )) ,(tail exp2) ) )
 
@@ -375,7 +376,7 @@
       )
     ]
     [,exp 
-    (printf "exp->~a\n" exp)
+    (log-debug "exp->~a(" exp)
     exp]
   )
 )
@@ -388,16 +389,16 @@
    (let loop ((it steps) (exp exps) (i 0))
       (if (pair? it)
         (let ((ret '()))
-          (printf "~a.step ~a\n" i (car it) )
-          ;;(printf "   exp =~a\n" exp)
-          (printf " exp=>")
+          (log-info "~a.step ~a(" i (car it) )
+          ;;(log-debug "   exp =~a(" exp)
+          (log-info " exp=>")
           (pretty-print exp)
-          ;;(printf "symbol ~a\n"   (car it))
+          ;;(log-debug "symbol ~a("   (car it))
           (if (pair? (car it))
             (set! ret (apply (car (car it)) exp (cdr (car it)) ))
             (set! ret ((car it) exp)))
-          ;;(printf "   ret =~a\n\n" ret)
-          (printf " ret=>")
+          ;;(log-debug "   ret =~a\n(" ret)
+          (log-info " ret=>")
           (pretty-print ret)
           (loop (cdr it) ret (+ i 1)))
         exp
@@ -408,9 +409,9 @@
 (define (duck-compile-exp exp out)
     ;;asm-gen
     (let ((compile-exp (duck-compile exp)))
-      (printf " compile=>" )
+      (log-info " compile=>" )
       (pretty-print compile-exp)
-      (printf " gen file=>~a\n" out)
+      (log-info " gen file=>~a" out)
       (asm-gen-file compile-exp out))
 )
 

@@ -26,6 +26,7 @@
     (libs)
     (type)
     (options)
+    (logger)
     )
 
 (define symbols (get-sym))
@@ -43,7 +44,7 @@
     [#t `true-rep ]
     [#f `false-rep ]
     [(let ((,v ,exp1)) ,exp2)
-      (printf "==>let ~a ~a\n" v exp1 )
+      (log-debug "==>let ~a ~a" v exp1 )
       `(let ([,v ,(represent-conversion exp1) ])
           ,(represent-conversion exp2) )
     ]
@@ -98,7 +99,7 @@
       `(,app ,@(map represent-conversion args ))
     ]
     [,exp 
-      (printf "unkown exp->~a\n" exp)
+      (log-debug "unkown exp->~a" exp)
     exp]
   )
 )
@@ -108,9 +109,9 @@
   (define (find-vars cur vars)
     (match cur
       [(let ((,var ,e1)) ,e2)
-        (printf "find-vars let=>~a ~a ~a\n" var e1 e2)
+        (log-debug "find-vars let=>~a ~a ~a" var e1 e2)
         (set! vars (append vars (list var) (find-vars e2 vars)))
-        (printf "vars=>~a\n" vars)
+        (log-debug "vars=>~a" vars)
         vars
       ]
       [(if ,a ,b ,c)
@@ -121,16 +122,16 @@
         vars
       ]
       [(,app ,args ...)
-        (printf "find app ==> ~a ~a\n" app args)
+        (log-debug "find app ==> ~a ~a" app args)
         vars
       ]
       [,v
         (guard (or (number? v) (symbol? v)))
-        (printf "symbol/number ==> ~a\n" v)
+        (log-debug "symbol/number ==> ~a" v)
         vars
       ]
       [,exp 
-        ;;(printf "unkown exp->~a\n" exp)
+        ;;(log-debug "unkown exp->~a" exp)
         (error 'flatten "find-vars erro" exp )
         vars
       ]
@@ -138,10 +139,10 @@
   )
 
   (define (flatten exp)
-    (printf "flatten===>~a\n" exp)
+    (log-debug "flatten===>~a" exp)
     (match exp
       [(let ((,proc (lambda (,args ...) ,body ))) ,e)
-        (printf "proc==> ~a args=~a body=~a  e=~a\n" proc args  body  e)
+        (log-debug "proc==> ~a args=~a body=~a  e=~a" proc args  body  e)
         `(
            (program ,proc
               ,args ;;args
@@ -156,23 +157,23 @@
           )
       ]
       [(let ((,var ,e1)) ,e2)
-        (printf "let ==> ~a ~a ~a\n" var e1 e2)
+        (log-debug "let ==> ~a ~a ~a" var e1 e2)
         `( (set ,var ,e1) ,@(flatten e2))
       ]
       [(if ,a ,b ,c)
        `((if ,a ,b ,c))
        ]
       [(,app ,args ...)
-        (printf "app ==> ~a ~a\n" app args)
+        (log-debug "app ==> ~a ~a" app args)
         `((,app ,@args))
       ]
       [,v
         (guard (or (number? v) (symbol? v)))
-        (printf "symbol/number ==> ~a\n" v)
+        (log-debug "symbol/number ==> ~a" v)
         `(,v)
       ]
       [,exp 
-        ;;(printf "unkown exp->~a\n" exp)
+        ;;(log-debug "unkown exp->~a" exp)
         (error 'flatten "flatten erro" exp)
       ]
     ))
@@ -201,14 +202,14 @@
     )
 
     (define (remove-p e k)
-      (printf ">>>>>>>>>>remove-p ~a\n" e)
+      (log-debug ">>>>>>>>>>remove-p ~a" e)
       (match e
         ; [(code (,apps ...))
-        ;   (printf " remove-code1 ~a\n" apps)
+        ;   (log-debug " remove-code1 ~a" apps)
         ;   (k `( ,@apps))
         ; ]
         [(code ,exps ...)
-          (printf " remove-code3 ~a\n" e)
+          (log-debug " remove-code3 ~a" e)
           (let ((ret (remove-p* exps id) ))
             ; (if (match-exp ret)
             ;   (k `(code ,@ret ))
@@ -225,28 +226,28 @@
           (k v)
         ]
         [,exp 
-        (printf "unkown exp->~a\n" exp)
+        (log-debug "unkown exp->~a" exp)
         (error 'remove-code "remove-code erro" exp)
       ]
       )
     )
 
   (define (remove-p* exp* k)
-    (printf "=======>remove-p* ~a\n" exp* )
+    (log-debug "=======>remove-p* ~a" exp* )
     (if (null? exp*)
       (begin 
-        (printf "----------->exps end exp*=~a\n" exp*)
+        (log-debug "----------->exps end exp*=~a" exp*)
         (k exp*)
       )
       (remove-p (car exp*) 
         (lambda (t)
-          (printf " (car exp*)=~a ret=>~a match=~a\n" (car exp*) t (match-exp t))  
+          (log-debug " (car exp*)=~a ret=>~a match=~a" (car exp*) t (match-exp t))  
           (if (match-exp t)
             (collect-exp t)
           )        
           (remove-p* (cdr exp*)
             (lambda (t*) 
-              (printf "=======>t=~a t*=~a\n" t t*)
+              (log-debug "=======>t=~a t*=~a" t t*)
               (k `(,t . ,t*)))) ))
     )
   )
@@ -256,19 +257,19 @@
 
 ;;conver codes =>instruct
 (define (instruct-conversion exp)
-  (printf "instruct-conversion ~a\n" exp)
+  (log-debug "instruct-conversion ~a" exp)
   (match exp
     [(program ,name ,vars ,args ,e ...)
-      (printf "   program=> ~a ~a ~a ~a\n" name vars args e)
+      (log-debug "   program=> ~a ~a ~a ~a" name vars args e)
       (let ((instructs (map instruct-conversion e)))
-        (printf "   instructs=>~a\n" instructs)
+        (log-debug "   instructs=>~a" instructs)
         (set! instructs (remove-code `(code ,@instructs)) )
-        (printf "   instructs2=>~a\n" instructs)
+        (log-debug "   instructs2=>~a" instructs)
         `(program ,name ,vars ,args 
             ,@instructs ))
     ]
     [(let ((,var ,e1)) ,e2)
-      (printf "let ==> ~a ~a ~a\n" var e1 e2)
+      (log-debug "let ==> ~a ~a ~a" var e1 e2)
       `(code
         ,(instruct-conversion e1)
         (set ,var reg0)
@@ -292,14 +293,14 @@
         )
     ]
     [(set ,var (,e ...) )
-      (printf "set1 ~a ~a\n" var e)
+      (log-debug "set1 ~a ~a" var e)
       `(code
         ,(instruct-conversion `(,@e) )
         (set ,var reg0)
       )
     ]
     [(set ,var ,val)
-      (printf "set2 ~a ~a\n" var val)
+      (log-debug "set2 ~a ~a" var val)
       `(code
         (set ,var ,val)
       )
@@ -319,11 +320,11 @@
     ]
     [,v
       (guard (or (number? v) (symbol? v)))
-      (printf "symbol ==> ~a\n" v)
+      (log-debug "symbol ==> ~a" v)
        `(code (set reg0 ,v))
       ]
     [,exp 
-      ;;(printf "unkown exp->~a\n" exp)
+      ;;(log-debug "unkown exp->~a" exp)
       (error 'instruct-conversion "instruct-conversion erro" exp)
     ]
   )    
@@ -332,9 +333,9 @@
 (define (instruct-optimize exp)
   (match exp
       [(program ,name ,vars ,args ,e ...)
-      (printf "   program=> ~a ~a ~a ~a\n" name vars args e)
+      (log-debug "   program=> ~a ~a ~a ~a" name vars args e)
       (let ((instructs (map instruct-optimize e)))
-        (printf "instructs=>~a\n" instructs)
+        (log-debug "instructs=>~a" instructs)
         `(program ,name ,vars ,args 
             ,@instructs ))
     ]
@@ -352,13 +353,13 @@
 
 (define (assign-conversion exp)
   (define (lookup key env)
-    (printf "   lookup key=~a env=~a\n" key env)
+    (log-debug "   lookup key=~a env=~a" key env)
     (cond
       [(assq key env) => cdr]
       [else '()]))
 
   (define (lookup-value val env)
-    (printf "   lookup val=~a env=~a\n" val env)
+    (log-debug "   lookup val=~a env=~a" val env)
     (cond
       [(> (length (filter (lambda(x) (= 0 (cdr x))) env)) 0) val]
       [else '()]))
@@ -383,9 +384,9 @@
             (mapc (lambda (x)
                     (set! lenv (ext  x (length lenv) lenv)))
                   vars)
-            (printf "prgram name=~a args vars env =>~a\n" name lenv)
-          `(program ,name ,@(map (lambda (i) 
-              (printf "   env=> ~a\n" lenv)
+            (log-debug "prgram name=~a args vars env =>~a" name lenv)
+          `(program ,name ,args ,@(map (lambda (i) 
+              (log-debug "   env=> ~a" lenv)
               (assign i lenv) ) c*) )
           )
       ]
@@ -402,7 +403,7 @@
         `(set ,(assign a env) ,(assign b env))
       ]
       [(,app ,args ...)
-        (printf "assign=~a ~a\n" app args)
+        (log-debug "assign=~a ~a" app args)
         `(,(assign app env)
               ,@(map (lambda (x) 
                         (assign x env))
@@ -410,7 +411,7 @@
       ]
       [,var 
         (guard (symbol? var))
-        (printf "var==>~a env=~a genv=~a\n" var env genv)
+        (log-debug "var==>~a env=~a genv=~a" var env genv)
         (let ((it (lookup var env))
               (git (lookup var genv)) )
           (if (null? git)
@@ -422,7 +423,7 @@
              ) )
       ]
       [,exp 
-          (printf "assign-conversion unkown exp->~a\n" exp)
+          (log-debug "assign-conversion unkown exp->~a" exp)
           exp
       ]
     ) 
@@ -433,7 +434,7 @@
 
 ;;add proc to last 
 (define (restruct-block exp)
-  
+  (log-set-level '())
   (let ((block-defs '() ) 
         (block-main '())
         (block-data `(
@@ -448,31 +449,45 @@
           ,(assign-conversion `,(print-list))
            ))
        )
-  
   (define (collect cur)
     (match cur
-      [(program all ,bodys ...)
-        `(program all ,@(mapc collect bodys) )
+      [(program all ,args ,bodys ...)
+        (log-debug "programe all collect=> ~a" bodys )
+        (set! block-main (append block-main (map collect bodys) ))
       ]
-      [(program ,name ,bodys ... )
-        (printf "program-> name=~a body=~a\n" name bodys)
-        (if (equal? 'main name)
-          (set! block-main (append block-main  (list (mapc collect bodys) )))
-          (set! block-defs (append block-defs (list `(block ,name ,@(mapc collect bodys) ))))
+      [(program ,name ,args ,bodys ... )
+        (let ((b (map collect bodys) ))
+          (log-debug "program-> name=~a body=~a" name bodys)
+          (log-debug "  b==>~a block-main=>~a" b block-main)
+          (if (equal? 'main name)
+            (begin
+              (set! block-main (append block-main b ))
+               '()
+            )
+            (begin 
+              (set! block-defs (append block-defs (list `(block (function ,name ,@args) ,@bodys ))))
+              `(block ,name ,@bodys )
+              ; '()
+            )
+          )
         )
-        '()
-        ; `(block ,name ,@(mapc collect bodys ))
+        
       ]
       [($asm ,bodys ...)
-        (mapc collect `(,@bodys))
+        (log-debug "$asm ==>~a" bodys)
+        `($asm ,@bodys)
+      ]
+      [(block ,args ...)
+        `(block ,@args)
       ]
       ;;default in main
       [,exp  
-        (set! block-main (append  block-main `(,exp)  ))
+        (log-debug "else==>~a block-main=>~a" exp block-main)
         exp
       ]
     )
   )
+  (log-set-level 'info)
   (collect exp)
 
   `(block all 
@@ -514,24 +529,32 @@
             )
         )
        ]
-      [(block ,name ,blocks ...)
-        (let ((is-main (memq  name '(main all data ))))
-        (if (not is-main)
-          (proc name '())
-          )
+      [(block (function ,name ,args ...) ,blocks ...)
+        (note "block function ~a" name )
+        (proc name '())
         (let loop [(i blocks)]
-            (if (pair? i)
-              (begin 
-                ; (note "====> ~a" (car i))
-                (emit-code (car i) env)
-                (loop (cdr i))
-              )
+          (if (pair? i)
+            (begin 
+              ; (note "====> ~a" (car i))
+              (emit-code (car i) env)
+              (loop (cdr i))
             )
-        )
-        (if (not is-main)
-          (ret))
           )
+        )
+        (ret)
        ]
+      [(block ,name ,blocks ...)
+        (note "block name=~a" name )
+        (let loop [(i blocks)]
+              (if (pair? i)
+                (begin 
+                  ; (note "====> ~a" (car i))
+                  (emit-code (car i) env)
+                  (loop (cdr i))
+                )
+              )
+          )
+      ]
       [(sdata ,arg)
         (sdata arg)
       ]
@@ -559,7 +582,7 @@
       ]
       [,reg
         (guard (memq reg regs-map))
-        ;;(printf "reg=>~a\n" reg)
+        ;;(log-debug "reg=>~a" reg)
         reg
       ]
       [(label ,var)
@@ -681,7 +704,7 @@
       ]
       [(fcall ,app ,args ...)
         ; (arg (emit-p args env))
-        ;(printf "call app= ~a ~a\n" app args)
+        ;(log-debug "call app= ~a ~a" app args)
         ;;call name
         (apply fcall app 
           (map  (lambda (e)
@@ -697,7 +720,7 @@
       ]
       [(call ,app ,args ...)
         ; (arg (emit-p args env))
-        ;(printf "call app= ~a ~a\n" app args)
+        ;(log-debug "call app= ~a ~a" app args)
         ;;call name
         (apply call app 
           (map  (lambda (e)
@@ -731,7 +754,7 @@
 (define (asm-gen exp)
   ;;(stack-trace-exception)
   (clear-gen-symbol)
-  (printf "asm-gen=>\n")
+  (log-info "asm-gen=>")
   (pretty-print exp)
   (let ((out-asm 
       (with-output-to-string
@@ -750,7 +773,7 @@
               )))
 
             ))))
-    ;;(printf "out-asm \n~a\n" out-asm)
+    ;;(log-debug "out-asm \n~a" out-asm)
     out-asm)  
   )
 
