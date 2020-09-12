@@ -14,7 +14,7 @@
     shl shr ret
     call jmp cmp-jmp cmp
     land xor save restore
-    nop local proc
+    nop local proc pret lproc lret
     fcall ccall
     stext sexit 
     data sdata

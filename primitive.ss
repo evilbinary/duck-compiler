@@ -283,7 +283,7 @@
     (restore reg1)
     (restore reg0)
     (label print-dot-l4)
-    (ret)
+    (lret)
 )
 
 (define-primitive (print-list arg0)
@@ -348,7 +348,7 @@
     (restore reg1)
     (restore reg0)
 
-    (ret)
+    (lret)
 )
 
 (define-primitive (print-value arg0)
@@ -415,7 +415,7 @@
       (restore reg2)
       (restore reg1)
       (restore reg0)
-      (ret)
+      (lret)
 )
 
 

@@ -518,7 +518,7 @@
     (note "emit-code ~a" cur)
     (match cur
     [(block (label ,name ,args ...) ,blocks ...)
-        (proc name args)
+        (lproc name '())
         (let loop [(i blocks)]
             (if (pair? i)
               (begin 
@@ -541,7 +541,7 @@
             )
           )
         )
-        (ret)
+        (pret)
        ]
       [(block ,name ,blocks ...)
         (note "block name=~a" name )
@@ -608,6 +608,9 @@
       ]
       [(ret)
         (ret)
+      ]
+       [(lret)
+        (lret)
       ]
       [(cmp-jmp ,a ,b ,c)
         (cmp-jmp a b c)

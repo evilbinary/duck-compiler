@@ -12,7 +12,7 @@
     shl shr ret
     call jmp cmp-jmp cmp
     land xor save restore
-    nop local proc
+    nop local proc pret lproc lret
 
     fcall ccall
     stext sexit
@@ -455,12 +455,35 @@
   (note "proc ~a" l)
   (label l)
   (asm "push ebp")
+  ; (asm "push esp")
+  (asm "mov	ebp, esp")
+  (asm "add ebp, 8")
+  (saves)
+)
+
+(define (pret)
+  (restores)
+  ; (asm "pop esp")
+  (asm "pop ebp")
+  
+  (asm "ret"))
+
+
+(define (lproc l args)
+  (note "\n")
+  (note "lproc ~a" l)
+  (label l)
+  (asm "push ebp")
+  ; (asm "push esp")
   (asm "mov	ebp, esp")
   (asm "add ebp, 8")
 )
 
-(define (ret)
+(define (lret)
   (asm "pop ebp")
+  (asm "ret"))
+
+(define (ret)
   (asm "ret"))
 
 (define (label l)
@@ -497,20 +520,24 @@
 
 ;;instruct start here
 
-; (define (saves)
-;   ; (asm "pusha")
-;   (save reg1)
-;   (save reg2)
-;   (save reg3)
-;   (save reg4)
-; )
+(define (saves)
+  (asm "pushfd")
+  (save reg1)
+  (save reg2)
+  (save reg3)
+  (save reg4)
+  (save reg5)
+ 
+)
 
-; (define (restores)
-;   (restore reg4)
-;   (restore reg3)
-;   (restore reg2)
-;   (restore reg1)
-; )
+(define (restores)
+  (restore reg5)
+  (restore reg4)
+  (restore reg3)
+  (restore reg2)
+  (restore reg1)
+  (asm "popfd")
+)
 
 
 )
