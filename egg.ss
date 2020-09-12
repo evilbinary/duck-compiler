@@ -461,7 +461,7 @@
           (log-debug "  b==>~a block-main=>~a" b block-main)
           (if (equal? 'main name)
             (begin
-              (set! block-main (append block-main b ))
+              (set! block-main (append  b  block-main))
                '()
             )
             (begin 
