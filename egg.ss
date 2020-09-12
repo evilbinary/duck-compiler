@@ -280,6 +280,7 @@
         (let ((l1 (gen-sym 'ifa))
               (l2 (gen-sym 'ifb))
               (l3 (gen-sym 'ifend)))
+        ;;(log-debug "if ==> ~a ~a ~a" l1 l2 l3)
         `(code
             ,(instruct-conversion a)
             (cmp-jmp reg0 false-rep ,l2 ,l1)
@@ -431,7 +432,6 @@
   (assign exp genv)
 )
 
-
 ;;add proc to last 
 (define (restruct-block exp)
   (log-set-level '())
@@ -453,7 +453,7 @@
     (match cur
       [(program all ,args ,bodys ...)
         (log-debug "programe all collect=> ~a" bodys )
-        (set! block-main (append block-main (map collect bodys) ))
+        (set! block-main (append  (map collect bodys)  block-main  ))
       ]
       [(program ,name ,args ,bodys ... )
         (let ((b (map collect bodys) ))
@@ -466,8 +466,8 @@
             )
             (begin 
               (set! block-defs (append block-defs (list `(block (function ,name ,@args) ,@bodys ))))
-              `(block ,name ,@bodys )
-              ; '()
+              ; `(block (function ,name ,@args) ,@bodys )
+              `()
             )
           )
         )
@@ -612,6 +612,9 @@
       [(cmp-jmp ,a ,b ,c)
         (cmp-jmp a b c)
       ]
+      [(cmp-jmp ,val1 ,val2 ,l1 ,l2)
+        (cmp-jmp val1 val2 l1 l2)
+      ]
       [(,binop ,a ,b)
         (guard (memq binop '(> < >= < <= =) ))
         (cmp binop (emit-p a env) (emit-p b env))
@@ -650,9 +653,6 @@
       ]
       [(land ,a ,b)
         (land a b)
-      ]
-      [(cmp-jmp ,val1 ,val2 ,l1 ,l2)
-        (cmp-jmp val1 val2 l1 l2)
       ]
       [(jmp ,l)
         (jmp l)
