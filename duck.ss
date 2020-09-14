@@ -264,6 +264,38 @@
   (anf exp id)
 )
 
+;;lift lambda to let global scope
+(define (lift-lambda exp)
+  (define lift-letrec
+    (lambda (x)
+      (define top* '())
+      (define add-top*
+        (lambda (def) (set! top* (append def top*))))
+      (define lift
+        (lambda (x)
+          (match x
+            [,x (guard (atom? x)) x]
+            [(let ([,fn (lambda (,u* ...) ,[e*])] ...) ,[e])
+            (begin
+              (add-top* `([,fn (lambda (,u* ...) ,e*)] ...))
+              e)]
+            [(,[a] . ,[d]) `(,a . ,d)])))
+      (let ([new-bd (lift x)]
+            )
+          (let loop [(i top*)]
+              (if (pair? i)
+                (begin 
+                  (set! new-bd `(let (,(car i)) ,new-bd) )
+                  (loop (cdr i))
+                )
+              )
+          )
+          new-bd
+            )))
+  (lift-letrec exp)
+)
+
+
 (define (mark-tail exp fn)
   (log-debug "mark-tail->~a(" exp)
   (match exp
@@ -424,6 +456,7 @@
       ;;alpha-conversion
       ;;cps-conversion
       anf-conversion
+      lift-lambda
       ;;tail-convert
       tail-conversion
       ; closure-conversion

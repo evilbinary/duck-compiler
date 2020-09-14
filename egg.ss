@@ -280,7 +280,7 @@
         (let ((l1 (gen-sym 'ifa))
               (l2 (gen-sym 'ifb))
               (l3 (gen-sym 'ifend)))
-        ;;(log-debug "if ==> ~a ~a ~a" l1 l2 l3)
+        (log-debug "--->if ==> ~a ~a ~a" l1 l2 l3)
         `(code
             ,(instruct-conversion a)
             (cmp-jmp reg0 false-rep ,l2 ,l1)
@@ -432,6 +432,59 @@
   (assign exp genv)
 )
 
+(define (collect-block cur main-block fn-block)
+    (match cur
+      [(program all ,args ,bodys ...)
+        (log-debug "programe all collect=> ~a" bodys )
+        (let ((b (map (lambda (x) 
+                   (collect-block x main-block fn-block))
+                    bodys)))
+        (set-box! main-block 
+          (append b
+                 (unbox main-block)  ))
+        )
+      ]
+      [(program ,name ,args ,bodys ... )
+          (log-debug "program-> name=~a body=~a" name bodys)
+          (if (equal? 'main name)
+            (let ((b  (map (lambda (x) 
+                   (collect-block x main-block fn-block))
+                    bodys)))
+              (set-box! main-block (append b (unbox main-block) ) )
+               '()
+            )
+            (let ((mb (box '() ))
+                  (fb (box '()))
+                  (b '())
+                  )
+              (set! b (map (lambda (x) 
+                   (collect-block x mb fb))
+                    bodys))
+              (set-box! fn-block (append (unbox fn-block) 
+                          (list `(block (function ,name ,@args) ,@b ,@(unbox mb)))
+                          (unbox fb)
+                                 ) )
+              ; `(block (function ,name ,@args) ,@bodys )
+              `()
+            )
+          )        
+      ]
+      [($asm ,bodys ...)
+        (log-debug "$asm ==>~a" bodys)
+        `($asm ,@bodys)
+      ]
+      [(block (,fn ,args ...) ,bodys ...)
+        ;`(block-> (,fn ,args ...) ,@(map collect bodys))
+        `()
+      ]
+      ;;default in main
+      [,exp  
+        (log-debug "else==>~a block-main=>~a" exp (unbox main-block))
+        exp
+      ]
+    )
+  )
+
 ;;add proc to last 
 (define (restruct-block exp)
   (log-set-level '())
@@ -449,46 +502,15 @@
           ,(assign-conversion `,(print-list))
            ))
        )
-  (define (collect cur)
-    (match cur
-      [(program all ,args ,bodys ...)
-        (log-debug "programe all collect=> ~a" bodys )
-        (set! block-main (append  (map collect bodys)  block-main  ))
-      ]
-      [(program ,name ,args ,bodys ... )
-        (let ((b (map collect bodys) ))
-          (log-debug "program-> name=~a body=~a" name bodys)
-          (log-debug "  b==>~a block-main=>~a" b block-main)
-          (if (equal? 'main name)
-            (begin
-              (set! block-main (append  b  block-main))
-               '()
-            )
-            (begin 
-              (set! block-defs (append block-defs (list `(block (function ,name ,@args) ,@bodys ))))
-              ; `(block (function ,name ,@args) ,@bodys )
-              `()
-            )
-          )
-        )
-        
-      ]
-      [($asm ,bodys ...)
-        (log-debug "$asm ==>~a" bodys)
-        `($asm ,@bodys)
-      ]
-      [(block ,args ...)
-        `(block ,@args)
-      ]
-      ;;default in main
-      [,exp  
-        (log-debug "else==>~a block-main=>~a" exp block-main)
-        exp
-      ]
-    )
-  )
+  
   (log-set-level 'info)
-  (collect exp)
+  (let ((main-block (box block-main))
+        (fn-block (box block-defs ))
+        )
+      (collect-block exp main-block fn-block)
+      (set! block-main (unbox main-block))
+      (set! block-defs (unbox fn-block))
+  )
 
   `(block all 
     ;;main block
@@ -650,6 +672,9 @@
       ]
       [(sar ,a ,b)
         (sar a b)
+      ]
+      [(sal ,a ,b)
+        (sal a b)
       ]
       [(note ,x ...)
         (note x)

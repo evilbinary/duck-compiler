@@ -404,11 +404,9 @@
 (define mref
   (case-lambda 
     [(a b) 
-      (unless (equal? a b)
-        (asm "mov ~a,[~a]" (operands-rep a) (operands-rep b) ))]
+      (asm "mov ~a,[~a]" (operands-rep a) (operands-rep b) )]
     [(a b c)
-    (unless (equal? a b)
-      (asm "mov ~a,[~a] ;;~a" (operands-rep a) (operands-rep b) c ))]))
+      (asm "mov ~a,[~a] ;;~a" (operands-rep a) (operands-rep b) c )]))
 
 ;;set [reg],reg [mem],reg
 (define mset
@@ -494,13 +492,13 @@
   (asm "sar ~a,~a" (operands-rep a) (operands-rep b) ))
 
 (define (sal a b)
-  (asm "sal ~a,~a" a b))
+  (asm "sal ~a,~a" (operands-rep a) (operands-rep b) ))
 
 (define (shl a b)
-  (asm "shl ~a,~a" a b))
+  (asm "shl ~a,~a" (operands-rep a) (operands-rep b) ))
 
 (define (shr a b)
-  (asm "shr ~a,~a" a b))
+  (asm "shr ~a,~a" (operands-rep a) (operands-rep b) ))
 
 (define (land a b)
   (asm "and ~a,~a" (operands-rep a) (operands-rep b) ))
