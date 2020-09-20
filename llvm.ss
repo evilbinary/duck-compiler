@@ -11,7 +11,7 @@
     shl shr ret
     call jmp cmp-jmp cmp
     land xor save restore
-    nop local proc
+    nop local proc lproc pret lret
 
     fcall ccall
     stext sexit
@@ -470,6 +470,18 @@
   
   
 )
+
+(define (lproc l args)
+  (proc l args)
+)
+
+(define (pret)
+  (ret)
+   )
+
+(define (lret)
+  (ret)
+   )
 
 (define (ret)
   (note "ret")

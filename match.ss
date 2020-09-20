@@ -517,7 +517,7 @@
                                          (if (and (null? ExpVar) ...)
                                              TailExp
                                              (errorf 'unquote
-                                               "Mismatched lists in ~s"
+                                               "Mismatched lists in ~a"
                                                Orig))))
                                  (append #'(ExpVar ...) #'RestVars)
                                  (append #'(ExpExp ...) #'RestExps)))))))))
