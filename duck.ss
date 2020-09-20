@@ -266,6 +266,105 @@
 
 ;;lift lambda to let global scope
 (define (lift-lambda exp)
+  (define gvars '())
+  (define add-gvar
+        (lambda (v) 
+          (set! gvars (append gvars (list v)))
+          (log-debug "add-gvar ~a vars=~a" v gvars)
+          ))
+  (define (find-free e)
+    (define vars '())
+    (define free-vars '())
+    (define add-var
+        (lambda (v) 
+          (set! vars (append vars (list v)))
+          (log-debug "add-var ~a vars=~a" v vars)
+          ))
+    (define (find-free-var x)
+      ;;(log-debug "match->~a" x)
+      (match x
+        [(let ([,fn (lambda (,u* ...) ,e* ... )] ) ,e ...)
+          (log-debug "find-free-var1 ~a" x)
+          (add-var fn)
+          (add-gvar fn)
+          (map add-var u*)
+          `(let ([,fn (lambda  (,@u* ) ,@(map find-free-var e*) )] ) ,@(map find-free-var e ))
+        ]
+        [(let ([,v ,e]) ,e* ...)
+          (log-debug "find-free-var2 ~a" x)
+          (add-var v)
+          `(let ([,v ,(find-free-var e)])
+              ,@(map find-free-var e* ))
+        ]
+        [($asm ,bodys ...)
+          (log-debug "$asm ==>~a" bodys)
+          `($asm ,@bodys)
+        ]
+        [(,app ,args ...)
+          `(,app ,@(map find-free-var args))
+        ]
+        [,v
+          (guard (number? v))
+          v
+        ]
+        [,v
+          (guard (memq v vars))
+          v
+        ]
+        [,v
+          (guard (memq v gvars))
+          v
+        ]
+        [,unconver
+          (guard (symbol? unconver))
+          (log-debug "unconver====>~a" unconver)
+          (if (not (memq unconver free-vars))
+            (set! free-vars (append free-vars (list unconver)))
+          )
+          (log-debug "free-vars ====>~a" free-vars)
+          unconver
+        ]
+        [,e
+          (log-debug "rest exp->~a" e)
+          e
+        ]
+      ))
+    (find-free-var e)
+    free-vars
+  )
+  (define (add-params x name params)
+      (define (map-all-params e)
+        (map (lambda (o) (add-params o name params))  e )
+      )
+      (log-debug "add-params x=~a ~a" x name)
+      (match x
+        [(let ([,fn (lambda (,u* ...) ,e* ... )]  ) ,e ...)
+          (log-debug "add-param1 ~a" x)
+          `(let ([,fn (lambda (,u* ...) ,e* ... )] ) ,@(map-all-params e) )
+        ]
+        [(let ([,v ,e]) ,e* ...)
+          (log-debug "add-param2 ~a" x)
+          `(let ([,v ,(add-params e name params)])
+              ,@(map-all-params e*) )
+        ]
+        [([,fn (lambda (,u* ...) ,e* ... )]  )
+        `([,fn (lambda (,u* ...) ,@(map-all-params e* ) )]  )
+        ]
+        [((,e* ...))
+          `(,@(map-all-params e*))
+        ]
+        [(,app ,args ...)
+          (log-debug "find fn ~a name=~a eq=~a" app name (equal? app name) )
+          (if (equal? app name)
+            `(,app ,@(map-all-params args) ,@params)
+            `(,app ,@(map-all-params args) ))
+        ]
+        [,v
+          v
+        ]
+      )
+    )
+
   (define lift-letrec
     (lambda (x)
       (define top* '())
@@ -275,16 +374,24 @@
         (lambda (x)
           (match x
             [,x (guard (atom? x)) x]
-            [(let ([,fn (lambda (,u* ...) ,[e*])] ...) ,[e])
-            (begin
-              (add-top* `([,fn (lambda (,u* ...) ,e*)] ...))
-              e)]
-            [(,[a] . ,[d]) `(,a . ,d)])))
-      (let ([new-bd (lift x)]
+            [(let ([,fn* (lambda (,u* ...) ,[e*])] ...) ,[e])
+              (let ((free (find-free `(let ([,fn* (lambda (,u* ...) ,e* )] ...) ,e ) ) ))
+                (log-debug "find-free=~a fn=~a" free fn*)
+                (if (null? free)
+                  (add-top* `([,fn* (lambda (,u* ... ) ,e* )] ... ))
+                  (add-top* (add-params `([,fn* (lambda (,u* ... ,free ) ,e*)] ... ) (car fn*) free))
+                )
+               (add-params e (car fn*) free)
+              )
+            ]
+            [(,[a] . ,[d]) 
+              ;;(log-debug "f====>~a ~a" a d)
+              `(,a . ,d)])))
+        (let ([new-bd (lift x)]
             )
           (let loop [(i top*)]
               (if (pair? i)
-                (begin 
+                (begin
                   (set! new-bd `(let (,(car i)) ,new-bd) )
                   (loop (cdr i))
                 )

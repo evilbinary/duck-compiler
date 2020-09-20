@@ -107,14 +107,16 @@
 ;;anf let to program
 (define (flatten-conversion exp)
   (define (find-vars cur vars)
+    (log-debug "find-vars==>~a" cur)
     (match cur
       [(let ((,var ,e1)) ,e2)
         (log-debug "find-vars let=>~a ~a ~a" var e1 e2)
-        (set! vars (append vars (list var) (find-vars e2 vars)))
+        (set! vars (append vars (list var)  (find-vars e1 vars) (find-vars e2 vars)))
         (log-debug "vars=>~a" vars)
         vars
       ]
       [(if ,a ,b ,c)
+        (log-debug "find-vars if=>~a ~a ~a" a b c)
         (set! vars (append vars
           (find-vars a vars)
           (find-vars b vars)
@@ -122,7 +124,7 @@
         vars
       ]
       [(,app ,args ...)
-        (log-debug "find app ==> ~a ~a" app args)
+        (log-debug "find-vars app ==> ~a ~a" app args)
         vars
       ]
       [,v
@@ -352,6 +354,7 @@
   )
 )
 
+;;remove vars
 (define (assign-conversion exp)
   (define (lookup key env)
     (log-debug "   lookup key=~a env=~a" key env)

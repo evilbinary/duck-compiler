@@ -157,6 +157,9 @@
                     (note "reg arg=~a" (car arg))
                     (asm "mov dword [esp+ ~a], ~a" (* i 4) (operands-rep (car arg)) )
                   ]
+                  [(void? (car arg))
+                    (note "void arg")
+                  ]
                   [else
                     (note "else arg=~a" (car arg))
                     (asm "mov ~a,~a" reg0 (operands-rep (car arg)) )

@@ -135,7 +135,7 @@
     (pretty-format 'print-value '(_ x))
     (pretty-format 'null? '(_ x))
     (pretty-format 'block '(_ name 0 ... ))
-    (pretty-format 'program '(_ name 0 args 0 vars  ... ))
+    (pretty-format 'program '(_ name args 0 vars  ... ))
     (pretty-one-line-limit 100)
   (let ((total 0)
         (passed 0)
