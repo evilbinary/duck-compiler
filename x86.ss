@@ -505,17 +505,28 @@
   (asm "~a:" (symbol->asm-id  l ))
   )
 
+(define (shift op a b)
+  (cond
+    [(number? b)
+      (asm "~a ~a,~a" op (operands-rep a) (operands-rep b) )
+    ]
+    [else
+      (asm "mov ecx,~a" (operands-rep b))
+      (asm "~a ~a,cl" op (operands-rep a))
+    ]
+      ))
+
 (define (sar a b)
-  (asm "sar ~a,~a" (operands-rep a) (operands-rep b) ))
+  (shift 'sar a b))
 
 (define (sal a b)
-  (asm "sal ~a,~a" (operands-rep a) (operands-rep b) ))
+  (shift 'sal a b))
 
 (define (shl a b)
-  (asm "shl ~a,~a" (operands-rep a) (operands-rep b) ))
+  (shift 'shl a b))
 
 (define (shr a b)
-  (asm "shr ~a,~a" (operands-rep a) (operands-rep b) ))
+  (shift 'shr a b))
 
 (define (land a b)
   (asm "and ~a,~a" (operands-rep a) (operands-rep b) ))
