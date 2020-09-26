@@ -33,12 +33,36 @@
 ")
 
 (define (macro-conversion exp)
-  exp
+  (define (read-file name)
+    (let ((p (open-input-file name)))
+        (let f ((x (read p)))
+            (if (eof-object? x)
+                (begin
+                (close-input-port p)
+                '())
+                (cons x (f (read p)))))))
+  (define (include file)
+    (let ((code (read-file (format "~a" file))))
+         `(begin ,@code ) 
+      )
+  )
+  (match exp
+    [($include ,file)
+      (log-debug "include file ~a" file)
+      (include file)
+    ]
+    [(begin ,exps ... )
+      `(begin ,@(map macro-conversion exps))
+    ]
+    [,e
+    e
+    ]
+  )
 )
 
 
 (define (ast-conversion exp)
-(log-debug "exp ~a(" exp)
+(log-debug "exp ~a" exp)
 (match exp
   [(define (,v ,e* ...) ,e1)
     (ast-conversion `(define ,v (lambda (,@e*) ,e1)) )
@@ -562,7 +586,7 @@
   (let ((out 'out))
     (clear-gen-symbol '())
     (compile-steps exps (list
-      ;;macro-conversion
+      macro-conversion
       ast-conversion
       ;;alpha-conversion
       ;;cps-conversion
