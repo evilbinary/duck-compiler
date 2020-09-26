@@ -685,6 +685,9 @@
       [(land ,a ,b)
         (land a b)
       ]
+      [(lor ,a ,b)
+        (lor a b)
+      ]
       [(jmp ,l)
         (jmp l)
       ]

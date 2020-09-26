@@ -11,7 +11,7 @@
     add label sar sal mul sub div
     shl shr ret
     call jmp cmp-jmp cmp
-    land xor save restore
+    land lor xor save restore
     nop local proc pret lproc lret
 
     fcall ccall
@@ -19,6 +19,7 @@
     asm-compile-exp
     data sdata
     arch-bits
+    operands-rep
   )
 
 (import 
@@ -78,6 +79,18 @@
             (data key val))
         keyvec valvec))
 )
+
+(define note
+  (case-lambda 
+    [(a) (asm ";;~a" a)]
+    [(fmt . val) 
+      (printf ";;")
+      (apply asm fmt val)]))
+
+(define (asm . args)
+  (apply printf  args)
+  (newline ))
+
 
 (define (data var val)
   (note "data var=~a val=~a" var val)
@@ -507,8 +520,11 @@
 (define (land a b)
   (asm "and ~a,~a" (operands-rep a) (operands-rep b) ))
 
+(define (lor a b)
+  (asm "or ~a,~a" (operands-rep a) (operands-rep b)))
+
 (define (xor a b)
-  (asm "xor ~a,~a" a b))
+  (asm "xor ~a,~a" (operands-rep a) (operands-rep b)))
 
 (define (save a)
   (asm "push ~a" (operands-rep a)))

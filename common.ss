@@ -19,9 +19,7 @@
   asm-data-get
   asm-data-clear
   get-asm-data-define
-  mapc
-  asm
-  note  
+  mapc  
    )
 
   (import 
@@ -30,17 +28,6 @@
   )
 
 (define mapc for-each)
-
-(define (asm . args)
-  (apply printf  args)
-  (newline ))
-
-(define note
-  (case-lambda 
-    [(a) (asm ";;~a" a)]
-    [(fmt . val) 
-      (printf ";;")
-      (apply asm fmt val)]))
 
 (define asm-data-define (make-hashtable equal-hash equal?))
 
