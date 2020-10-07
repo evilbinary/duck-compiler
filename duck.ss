@@ -46,18 +46,24 @@
          `(begin ,@code ) 
       )
   )
-  (match exp
-    [($include ,file)
-      (log-debug "include file ~a" file)
-      (include file)
-    ]
-    [(begin ,exps ... )
-      `(begin ,@(map macro-conversion exps))
-    ]
-    [,e
-    e
-    ]
+  (define (mconv ex)
+    (match ex
+      [($include ,file)
+        (log-debug "include file ~a" file)
+        (include file)
+      ]
+      [(begin ,exps ... )
+        `(begin ,@(map macro-conversion exps))
+      ]
+      [(,app ,e* ...)
+        `(,app ,@(map mconv e*))
+      ]
+      [,e
+      e
+      ]
+    )
   )
+  (mconv exp)
 )
 
 

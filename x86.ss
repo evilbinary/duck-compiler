@@ -431,9 +431,29 @@
     [(a b) 
       (unless (equal? a b)
         (asm "mov [~a],~a" (operands-rep a) (operands-rep b) ))]
-    [(a b c)
+    [(a b size)
     (unless (equal? a b)
-      (asm "mov [~a],~a ;;~a" (operands-rep a) (operands-rep b) c ))]))
+      (if (pair? size)
+        (cond 
+          [(equal? (car size) 'word )
+            (asm "mov eax,~a" (operands-rep a))
+            (asm "mov ebx,~a" (operands-rep b))
+            (asm "mov word [eax],bx ;;~a"  size )
+          ]
+          [(equal? (car size) 'byte )
+            (asm "mov eax,~a" (operands-rep a))
+            (asm "mov ebx,~a" (operands-rep b))
+            (asm "mov byte [eax],bl ;;~a"  size )
+          ]
+          [else
+            (asm "mov [~a],~a ;;~a" (operands-rep a) (operands-rep b) size )
+          ]
+        )
+        (asm "mov [~a],~a ;;~a" (operands-rep a) (operands-rep b) size )
+
+      )
+    )]
+    ))
 
 
 (define (add a b)
@@ -456,13 +476,16 @@
   (asm "mov ~a,~a" reg0 (operands-rep a))
   (asm "mov ~a,~a" reg2 (operands-rep b))
   (asm "mul ~a"  reg2)
+  (sar reg0 type-shift)
   )
 
 (define (div a b)
   (asm "xor edx,edx")
   (asm "mov ~a,~a" reg0 (operands-rep a))
   (asm "mov ~a,~a" reg2 (operands-rep b))
-  (asm "div ~a"  reg2)
+  (asm "div ~a" reg2) ;;余数 edx=>reg3 商eax=>reg0
+  (sal reg0 type-shift)
+  ;;(sal reg3 type-shift)
   )
 
 (define (proc l args)

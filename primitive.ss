@@ -248,7 +248,6 @@
       )
   ]))
 
-
   (define-primitive (print-dot arg0)
     (set reg0 (local 0))
     ;;(set reg0 reg1)

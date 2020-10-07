@@ -73,6 +73,7 @@
       (set! s (symbol->string s )))
   (let ((str s))
     (set! str (string-replace "-" "." str))
+     (set! str (string-replace "%" "percent" str))
     (set! str (string-replace " " ".space" str))
     (set! str (string-replace #\- #\. str))
     (set! str (string-replace #\space ".space" str))
