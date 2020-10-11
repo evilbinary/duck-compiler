@@ -129,7 +129,9 @@
        (cadr (memq x regs-map))]
       [(symbol? x)
         (let ((s (symbol->string x)))
-          (format "[~a]" (symbol->asm-id s))
+          (if (equal? (string-ref s 0) #\&)
+            (format "~a" (symbol->asm-id  (substring s 1 (string-length s)) ))
+            (format "[~a]" (symbol->asm-id s)))
         )]
       [(list? x)
         (let loop ((e x) (s "["))
