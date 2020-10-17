@@ -413,6 +413,10 @@
                         (assign x env))
                      args ))
       ]
+      [,var
+        (guard (and (symbol? var)  (equal? (string-ref (symbol->string var)  0) #\&)) )
+        var
+      ]
       [,var 
         (guard (symbol? var))
         (log-debug "var==>~a env=~a genv=~a" var env genv)
@@ -435,12 +439,12 @@
   (assign exp genv)
 )
 
-(define (collect-block cur main-block fn-block)
+(define (collect-block cur main-block fn-block data-block)
     (match cur
       [(program all ,args ,bodys ...)
         (log-debug "programe all collect=> ~a" bodys )
         (let ((b (map (lambda (x) 
-                   (collect-block x main-block fn-block))
+                   (collect-block x main-block fn-block data-block))
                     bodys)))
         (set-box! main-block 
           (append b
@@ -451,7 +455,7 @@
           (log-debug "program-> name=~a body=~a" name bodys)
           (if (equal? 'main name)
             (let ((b  (map (lambda (x) 
-                   (collect-block x main-block fn-block))
+                   (collect-block x main-block fn-block data-block))
                     bodys)))
               (set-box! main-block (append b (unbox main-block) ) )
                '()
@@ -461,7 +465,7 @@
                   (b '())
                   )
               (set! b (map (lambda (x) 
-                   (collect-block x mb fb))
+                   (collect-block x mb fb data-block))
                     bodys))
               (set-box! fn-block (append (unbox fn-block) 
                           (list `(block (function ,name ,@args) ,@b ,@(unbox mb)))
@@ -479,6 +483,10 @@
       [(block (,fn ,args ...) ,bodys ...)
         ;`(block-> (,fn ,args ...) ,@(map collect bodys))
         `()
+      ]
+      [($data ,v ,e ...)
+        (set-box! data-block (append (list `(data ,v ,@e)) (unbox data-block) ) )
+        v
       ]
       ;;default in main
       [,exp  
@@ -509,10 +517,12 @@
   (log-set-level 'info)
   (let ((main-block (box block-main))
         (fn-block (box block-defs ))
+        (data-block (box block-data))
         )
-      (collect-block exp main-block fn-block)
+      (collect-block exp main-block fn-block data-block)
       (set! block-main (unbox main-block))
       (set! block-defs (unbox fn-block))
+      (set! block-data (unbox data-block))
   )
 
   `(block all 
@@ -583,8 +593,8 @@
       [(sdata ,arg)
         (sdata arg)
       ]
-      [(data ,a ,b)
-        (data a b)
+      [(data . ,args)
+        (apply data args)
       ]
       [(stext ,arg)
         (stext arg)
@@ -653,13 +663,7 @@
       ; ]
       [(,binop ,a ,b)
         (guard (memq binop '(+ add)))
-        ;(add (emit-p a env) (emit-p b env))
-        (set reg0 (emit-p a env))
-        ; (sar reg0 type-shift)
-        (set reg1 (emit-p b env))
-        ; (sar reg1 type-shift)
-        (add reg0 reg1)
-        ; (sal reg0 type-shift)
+        (add (emit-p a env) (emit-p b env))
       ]
       [(,binop ,a ,b)
         (guard (memq binop '(* mul)))
@@ -673,11 +677,17 @@
         (guard (memq binop '(/ div)))
         (div (emit-p a env) (emit-p b env))
       ]
+      [(shr ,a ,b)
+        (shr a b)
+      ]
       [(sar ,a ,b)
         (sar a b)
       ]
       [(sal ,a ,b)
         (sal a b)
+      ]
+      [(shl ,a ,b)
+        (shl a b)
       ]
       [(note ,x ...)
         (note x)

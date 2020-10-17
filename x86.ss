@@ -92,16 +92,26 @@
   (newline ))
 
 
-(define (data var val)
-  (note "data var=~a val=~a" var val)
-  (cond 
-    [(string? val)
-      (asm  "~a db \"~a\",0 " (symbol->asm-id var) val)]
-    [(number? val)
-      (asm  "~a dd ~a" var val)]
-    [else
-      (asm  "~a dd ~a" (symbol->asm-id var) val)]
+(define data
+  (case-lambda 
+  [(var val)
+    (note "data var=~a val=~a" var val)
+    (cond 
+      [(string? val)
+        (asm  "~a db \"~a\",0 " (symbol->asm-id var) val)]
+      [(number? val)
+        (asm  "~a dd ~a" (symbol->asm-id var) val)]
+      [else
+        (asm  "~a dd ~a" (symbol->asm-id var) val)]
+    )
+  ]
+  [(var val len)
+    (note "data var=~a val=~a len=~a" var val len)
+    (asm  "~a db ~a" (symbol->asm-id var) val)
+    (asm "times ~a db 0" len)
+  ]
   )
+
 )
 
 (define (asm-compile-exp exp name)
@@ -130,7 +140,7 @@
       [(symbol? x)
         (let ((s (symbol->string x)))
           (if (equal? (string-ref s 0) #\&)
-            (format "~a" (symbol->asm-id  (substring s 1 (string-length s)) ))
+            (format "~a \n sal eax,3" (symbol->asm-id  (substring s 1 (string-length s)) ))
             (format "[~a]" (symbol->asm-id s)))
         )]
       [(list? x)
@@ -459,7 +469,13 @@
 
 
 (define (add a b)
-  (asm "add ~a,~a" (operands-rep a) (operands-rep b))
+  (if (or (number? a) (list? a))
+    (begin 
+      (asm "mov ~a,~a" reg0 (operands-rep a))
+      (asm "add ~a,~a" reg0 (operands-rep b))
+    )
+    (asm "add ~a,~a" (operands-rep a) (operands-rep b))
+  )
   )
 
 (define (sub a b)

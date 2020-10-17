@@ -78,6 +78,13 @@
     `(let ((,v  (lambda (,args ...) ,body ) )) ,v )
         )
   ]
+  [(define ,v)
+    `(define ,v 0)
+  ]
+  [(define ,v ,e)
+    (guard (or (string? e) (number? e)))
+    `($data ,v ,e)
+  ]
   [(define ,v ,e)
     (log-debug "define ~a ~a(" v e)
     ;;`(set! ,v ,(ast-conversion e) )
