@@ -3,7 +3,7 @@
 ;作者:evilbinary on 12/24/16.
 ;邮箱:rootdebug@163.com
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(library (options)
+(library (duck options)
   (export 
     option-set
     option-get

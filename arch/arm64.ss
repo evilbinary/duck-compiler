@@ -3,14 +3,14 @@
 ;作者:evilbinary on 12/24/16.
 ;邮箱:rootdebug@163.com
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(library (arm)
+(library (arch arm64)
   (export 
     asm-gen-file
     asm-gen
   )
 
 (import (scheme)
-    (match)
+    (common match)
     )
 
 

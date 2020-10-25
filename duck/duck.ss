@@ -3,18 +3,18 @@
 ;作者:evilbinary on 12/24/16.
 ;邮箱:rootdebug@163.com
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(library (duck)
+(library (duck duck)
   (export duck-compile
   duck-compile-exp
   ast-conversion
   )
 
 (import (scheme)
-        (match)
-        (egg)
-        (trace)
-        (common)
-        (logger)
+        (common match)
+        (duck egg)
+        (common trace)
+        (common common)
+        (common logger)
         )
 
 (define (print-exp exp)

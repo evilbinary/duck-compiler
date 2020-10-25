@@ -4,7 +4,7 @@
 ;邮箱:rootdebug@163.com
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(library (egg)
+(library (duck egg)
   (export 
     asm-gen-file
     asm-gen
@@ -19,14 +19,14 @@
 
 (import
     (rename (scheme) (div div2) )
-    (match)
-    (trace)
-    (common)
-    (arch)
-    (libs)
-    (type)
-    (options)
-    (logger)
+    (common match)
+    (common trace)
+    (common common)
+    (arch arch)
+    (duck libs)
+    (duck type)
+    (duck options)
+    (common logger)
     )
 
 (define symbols (get-sym))

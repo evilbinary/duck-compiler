@@ -92,7 +92,7 @@
 
 ;; YOU'RE NOT ALLOWED TO REFER TO CATA VARS IN GUARDS. (reasonable!)
 
-(library (match) 
+(library (common match) 
   (export 
     trace-match+
     trace-match

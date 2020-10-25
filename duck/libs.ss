@@ -4,7 +4,7 @@
 ;邮箱:rootdebug@163.com
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(library (libs)
+(library (duck libs)
   (export 
     print-dot
     print-list
@@ -22,9 +22,9 @@
   )
 
 (import
-    (common)
-    (match)
-    (trace)
-    (primitive)
+    (common common)
+    (common match)
+    (common trace)
+    (duck primitive)
     )  
 )

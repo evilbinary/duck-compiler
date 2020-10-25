@@ -4,7 +4,7 @@
 ;邮箱:rootdebug@163.com
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(library (type)
+(library (duck type)
   (export 
   type-shift
   type-mask
@@ -35,9 +35,9 @@
   )
 
 (import (scheme)
-    (match)
-    (trace)
-    (common)
+    (common match)
+    (common trace)
+    (common common)
     )
   
 ;;;types

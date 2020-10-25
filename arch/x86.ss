@@ -3,7 +3,7 @@
 ;作者:evilbinary on 12/24/16.
 ;邮箱:rootdebug@163.com
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(library (x86)
+(library (arch x86)
   (export 
     reg0 reg1 reg2 reg3 reg4 reg5 reg6 reg7 regs regs-map
     r0h r0l r1h r1l
@@ -24,9 +24,9 @@
 
 (import 
     (rename (scheme) (div div2) )
-    (common)
-    (trace)
-    (type)
+    (common common)
+    (common trace)
+    (duck type)
     )
 
 (define arch-bits 32)

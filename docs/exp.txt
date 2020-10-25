@@ -203,3 +203,13 @@ cut(branch),takeoff(leaf)。
   )
 
 )
+
+
+(let ([loop2 (lambda (x)
+               (let ([var.0 (if (let ([var.1 (string-ref str x)])
+                                  (> var.1 0))
+                                (let ([var.2 (+ x 1)]) (loop2 var.2))
+                                (void))])
+                 x))])
+  (let ([string-length (lambda (str) (loop2 0))])
+    (print-value string-length)))

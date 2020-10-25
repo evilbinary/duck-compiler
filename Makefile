@@ -23,5 +23,8 @@ test-all:
 	./scripts/run-tests.sh tests/test-all.ss 
 
 
+cp:
+	cp *.ss ../duck-compiler-git/
+
 clean:
 	rm -rf build/*

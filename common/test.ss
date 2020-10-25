@@ -4,14 +4,14 @@
 ;邮箱:rootdebug@163.com
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(library (test)
+(library (common test)
   (export test add-test-case add-test 
    test-all
    add-test-string
    add-test-print
    )
 
-  (import (scheme) (duck) (logger) (common) (trace)     (options)
+  (import (scheme) (duck duck) (common logger) (common common) (common trace)     (duck options)
 )
 
 

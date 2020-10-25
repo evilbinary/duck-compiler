@@ -4,7 +4,7 @@
 ;邮箱:rootdebug@163.com
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(library (arch)
+(library (arch arch)
   (export 
     ;;regs
     reg0 reg1 reg2 reg3 reg4 reg5 reg6 reg7 regs regs-map
@@ -23,10 +23,10 @@
   )
 
 (import
-    (common)
-    (match)
-    (trace)
-    (options)
+    (common common)
+    (common match)
+    (common trace)
+    (duck options)
     (rename (scheme) (div div2) )
     ; (x86)
     ; (wasm)
@@ -38,9 +38,9 @@
         ((_ k)
           (datum->syntax #'k `(import 
           ,(case (option-get 'arch 'x86)
-            ['x86 '(x86)]
-            ['wasm '(wasm)]
-            ['llvm '(llvm)]
+            ['x86 '(arch x86)]
+            ['wasm '(arch wasm)]
+            ['llvm '(arch llvm)]
             [else (error 'platform "not support ")]
             ))
           ))))
